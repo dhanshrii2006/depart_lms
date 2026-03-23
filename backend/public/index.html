@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acadify - Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="gradient-bg">
+  <div class="login-container">
+    <div class="login-card">
+      <h1>Acadify</h1>
+      <p class="subtitle">Learning Management System</p>
+
+      <div class="error-message" id="errorMessage"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          <span id="buttonText">Login</span>
+        </button>
+      </form>
+
+      <div class="demo-credentials mt-4">
+        <p><strong>Demo Credentials:</strong></p>
+        <p>📚 Student: <code>student@acadify.dev</code></p>
+        <p>👨‍🏫 Teacher: <code>teacher@acadify.dev</code></p>
+        <p>⚙️ Admin: <code>admin@acadify.dev</code></p>
+        <p>Password: <code>password123</code></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('errorMessage');
+      const submitBtn = e.target.querySelector('button');
+      const buttonText = document.getElementById('buttonText');
+
+      errorDiv.classList.remove('show');
+      submitBtn.disabled = true;
+
+      try {
+        const response = await authAPI.login(email, password);
+
+        // Store user info in localStorage
+        localStorage.setItem('userId', response.user.id);
+        localStorage.setItem('userName', response.user.name);
+        localStorage.setItem('userEmail', response.user.email);
+        localStorage.setItem('userRole', response.user.role);
+        if (response.token) localStorage.setItem('authToken', response.token);
+
+        // Redirect based on role
+        const roleRedirect = {
+          'student': 'student-dashboard.html',
+          'teacher': 'teacher-dashboard.html',
+          'admin': 'admin-dashboard.html'
+        };
+
+        window.location.href = roleRedirect[response.user.role] || 'student-dashboard.html';
+      } catch (error) {
+        errorDiv.textContent = error.message;
+        errorDiv.classList.add('show');
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="student-dashboard.html">Dashboard</a></li>
+        <li><a href="my-courses.html">My Courses</a></li>
+        <li><a href="browse-courses.html">Browse Courses</a></li>
+        <li><a href="lesson.html" class="active">Lessons</a></li>
+        <li><a href="quiz.html">Quizzes</a></li>
+        <li><a href="#">Assignments</a></li>
+        <li><a href="progress.html">Progress</a></li>
+        <li><a href="#">Calendar</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Lesson</h1>
+        <div class="user-info">
+          <span id="userName">Student</span>
+          <div class="user-avatar" id="userAvatar">U</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
+          <div>
+            <div class="card" style="margin-bottom: 1.5rem;">
+              <h3 style="margin-bottom: 1rem;">React Hooks Explained</h3>
+              <div style="aspect-ratio: 16/9; background: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <iframe width="100%" height="400" style="border-radius: 8px;" src="https://www.youtube.com/embed/O6P86uwfdR0" title="React Hooks Tutorial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+              </div>
+
+              <p style="color: #666; line-height: 1.8; margin-bottom: 1rem;">
+                React Hooks are functions that let you use state and other React features in functional components. In this lesson, you'll learn about useState, useEffect, useContext, and custom hooks. We'll explore practical examples and best practices for using hooks in your React applications.
+              </p>
+
+              <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                <button class="btn btn-primary" onclick="markComplete()">✓ Mark as Complete</button>
+                <button class="btn btn-secondary">📥 Download Materials</button>
+              </div>
+
+              <div class="stats-grid" style="margin-bottom: 1rem;">
+                <div class="stat-card" style="text-align: left;">
+                  <p style="font-size: 0.9rem; color: #666;">Duration</p>
+                  <p style="font-size: 1.5rem; font-weight: 700; color: #667eea;">42:30</p>
+                </div>
+                <div class="stat-card" style="text-align: left;">
+                  <p style="font-size: 0.9rem; color: #666;">Watched</p>
+                  <p style="font-size: 1.5rem; font-weight: 700; color: #667eea;">32:45</p>
+                </div>
+                <div class="stat-card" style="text-align: left;">
+                  <p style="font-size: 0.9rem; color: #666;">Progress</p>
+                  <p style="font-size: 1.5rem; font-weight: 700; color: #667eea;">77%</p>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button class="btn btn-secondary" style="flex: 1;">← Previous Lesson</button>
+                <button class="btn btn-primary" style="flex: 1;">Next Lesson →</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <h3 style="margin-bottom: 1rem;">Course Lessons</h3>
+              <div style="max-height: 600px; overflow-y: auto;">
+                <div class="lesson-item" style="padding: 0.75rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; margin-bottom: 0.5rem;">
+                  <p style="font-weight: 600; font-size: 0.9rem;">✓ React Hooks Explained</p>
+                  <p style="font-size: 0.8rem; color: rgba(255,255,255,0.8); margin-top: 0.25rem;">42:30</p>
+                </div>
+                <div class="lesson-item" style="padding: 0.75rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem;">
+                  <p style="font-weight: 600; font-size: 0.9rem;">State Management with Redux</p>
+                  <p style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">38:15</p>
+                </div>
+                <div class="lesson-item" style="padding: 0.75rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem;">
+                  <p style="font-weight: 600; font-size: 0.9rem;">Component Composition</p>
+                  <p style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">34:22</p>
+                </div>
+                <div class="lesson-item" style="padding: 0.75rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem;">
+                  <p style="font-weight: 600; font-size: 0.9rem;">React Router Masterclass</p>
+                  <p style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">45:10</p>
+                </div>
+                <div class="lesson-item" style="padding: 0.75rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem;">
+                  <p style="font-weight: 600; font-size: 0.9rem;">Testing React Components</p>
+                  <p style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">39:50</p>
+                </div>
+                <div class="lesson-item" style="padding: 0.75rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem;">
+                  <p style="font-weight: 600; font-size: 0.9rem;">Performance Optimization</p>
+                  <p style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">41:30</p>
+                </div>
+                <div class="lesson-item" style="padding: 0.75rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem;">
+                  <p style="font-weight: 600; font-size: 0.9rem;">Next.js & SSR</p>
+                  <p style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">43:20</p>
+                </div>
+                <div class="lesson-item" style="padding: 0.75rem; cursor: pointer; border-radius: 8px;">
+                  <p style="font-weight: 600; font-size: 0.9rem;">Final Project</p>
+                  <p style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">Project</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    checkAuth('student');
+
+    // Update user info
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
+    function markComplete() {
+      alert('Lesson marked as complete! ✓');
+    }
+  </script>
+</body>
+</html>

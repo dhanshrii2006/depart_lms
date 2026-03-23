@@ -39,6 +39,9 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
+// Serve static files from public directory (frontend)
+app.use(express.static('public'));
+
 // === MIDDLEWARE ===
 
 // Verify JWT from cookie or Authorization header

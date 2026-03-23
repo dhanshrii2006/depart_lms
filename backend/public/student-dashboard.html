@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="student-dashboard.html" class="active">Dashboard</a></li>
+        <li><a href="my-courses.html">My Courses</a></li>
+        <li><a href="browse-courses.html">Browse Courses</a></li>
+        <li><a href="lesson.html">Lessons</a></li>
+        <li><a href="quiz.html">Quizzes</a></li>
+        <li><a href="#">Assignments</a></li>
+        <li><a href="progress.html">Progress</a></li>
+        <li><a href="#">Calendar</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Student Dashboard</h1>
+        <div class="user-info">
+          <span id="userName">Student</span>
+          <div class="user-avatar" id="userAvatar">U</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="value">4</div>
+            <div class="label">Courses in Progress</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">12</div>
+            <div class="label">Completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">5</div>
+            <div class="label">Assignments Due</div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3>Weekly Learning Hours</h3>
+          <div class="chart-wrapper">
+            <canvas id="learningChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3>Course Status</h3>
+          <div class="chart-wrapper">
+            <canvas id="statusChart"></canvas>
+          </div>
+        </div>
+
+        <div class="activity-feed">
+          <h3>Recent Activity</h3>
+          <div class="activity-item">
+            <div class="activity-icon">📝</div>
+            <div class="activity-content">
+              <p>Completed Quiz - Advanced Programming</p>
+              <span class="activity-time">2 hours ago</span>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon">✅</div>
+            <div class="activity-content">
+              <p>Finished Video - Database Design</p>
+              <span class="activity-time">4 hours ago</span>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon">📌</div>
+            <div class="activity-content">
+              <p>New Assignment Posted - Web Development</p>
+              <span class="activity-time">1 day ago</span>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon">💬</div>
+            <div class="activity-content">
+              <p>New Comment on Discussion - React Fundamentals</p>
+              <span class="activity-time">2 days ago</span>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Continue Learning</h3>
+        <div class="courses-grid">
+          <div class="course-card">
+            <div class="course-header">
+              <h3>React Fundamentals</h3>
+            </div>
+            <div class="course-body">
+              <p>Learn the basics of React and build interactive UIs</p>
+              <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: 65%;"></div>
+              </div>
+              <p style="font-size: 0.85rem; color: #667eea; font-weight: 600;">65% Complete</p>
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Continue</button>
+            </div>
+          </div>
+
+          <div class="course-card">
+            <div class="course-header">
+              <h3>Web Development Basics</h3>
+            </div>
+            <div class="course-body">
+              <p>Master HTML, CSS, and JavaScript fundamentals</p>
+              <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: 42%;"></div>
+              </div>
+              <p style="font-size: 0.85rem; color: #667eea; font-weight: 600;">42% Complete</p>
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Continue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+  <script>
+    checkAuth('student');
+
+    // Update user info
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
+    // Weekly Learning Hours Chart
+    const learningCtx = document.getElementById('learningChart').getContext('2d');
+    new Chart(learningCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Hours',
+          data: [3, 5, 2, 6, 4, 1, 7],
+          backgroundColor: 'rgba(102, 126, 234, 0.7)',
+          borderColor: '#667eea',
+          borderWidth: 2,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    // Course Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['In Progress', 'Completed', 'Not Started'],
+        datasets: [{
+          data: [4, 12, 3],
+          backgroundColor: [
+            '#667eea',
+            '#764ba2',
+            '#f0f0f0'
+          ],
+          borderColor: 'white',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

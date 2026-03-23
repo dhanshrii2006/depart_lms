@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Courses - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <div class="sidebar">
+      <h2>Acadify</h2>
+      <ul>
+        <li onclick="window.location.href='student-dashboard.html'">Dashboard</li>
+        <li onclick="window.location.href='my-courses.html'">My Courses</li>
+        <li class="active">Browse Courses</li>
+        <li onclick="window.location.href='lesson.html'">Lessons</li>
+        <li onclick="window.location.href='quiz.html'">Quizzes</li>
+        <li onclick="window.location.href='progress.html'">Progress</li>
+        <li onclick="window.location.href='settings.html'">Settings</li>
+        <li onclick="logout()">Logout</li>
+      </ul>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <span style="font-weight:600; color:#667eea;">Browse Courses</span>
+        </div>
+        <div class="topbar-right">
+          <div class="profile">
+            <div class="profile-avatar" id="userInitials">ST</div>
+            <span id="userName">Student</span>
+          </div>
+        </div>
+      </div>
+      <div class="page-container">
+        <div class="welcome-banner">
+          <h2>Browse Courses</h2>
+          <p>Explore available courses and enroll using invite codes</p>
+        </div>
+        <div id="coursesGrid" class="courses-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+  <script>
+    checkAuth('student');
+
+    var userName = localStorage.getItem('userName') || 'Student';
+    var userInitials = localStorage.getItem('userInitials') || 'ST';
+    document.getElementById('userName').textContent = userName;
+    document.getElementById('userInitials').textContent = userInitials;
+
+    var mockCourses = [
+      { id: 1, title: 'React Advanced', teacher_name: 'Sarah Johnson', rating: '4.8', students: '2.3k', category: 'Frontend' },
+      { id: 2, title: 'Node.js API Development', teacher_name: 'Alex Rodriguez', rating: '4.7', students: '1.8k', category: 'Backend' },
+      { id: 3, title: 'Python for Data Science', teacher_name: 'Lisa Zhang', rating: '4.9', students: '5.1k', category: 'Data Science' },
+      { id: 4, title: 'TypeScript Mastery', teacher_name: 'David Martinez', rating: '4.6', students: '1.2k', category: 'Frontend' },
+      { id: 5, title: 'AWS Cloud Essentials', teacher_name: 'Nathan Brown', rating: '4.8', students: '3.4k', category: 'Cloud' },
+      { id: 6, title: 'UI/UX Design Fundamentals', teacher_name: 'Emma Wilson', rating: '4.9', students: '2.7k', category: 'Design' }
+    ];
+
+    function renderCourses(courses) {
+      var grid = document.getElementById('coursesGrid');
+      grid.innerHTML = '';
+      for (var i = 0; i < courses.length; i++) {
+        var course = courses[i];
+        var card = document.createElement('div');
+        card.className = 'course-card';
+        card.innerHTML =
+          '<div class="course-card-header">' + course.category + '</div>' +
+          '<div class="course-card-body">' +
+            '<h3>' + course.title + '</h3>' +
+            '<p>by ' + course.teacher_name + '</p>' +
+            '<p style="font-size:12px;color:#f59e0b;margin:8px 0;">★ ' + course.rating + ' • ' + course.students + ' students</p>' +
+            '<button class="btn btn-primary btn-small btn-block" onclick="enrollCourse(' + "'" + course.title + "'" + ')">Enroll Now</button>' +
+          '</div>';
+        grid.appendChild(card);
+      }
+    }
+
+    function enrollCourse(title) {
+      var code = prompt('Enter invite code for: ' + title);
+      if (!code) return;
+      fetch('http://localhost:5000/api/enrollments/join', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invite_code: code.trim().toUpperCase() })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.error) {
+          alert('Error: ' + data.error);
+        } else {
+          alert('Successfully enrolled in ' + title + '!');
+        }
+      })
+      .catch(function(err) {
+        alert('Error: ' + err.message);
+      });
+    }
+
+    fetch('http://localhost:5000/api/courses/public', {
+      credentials: 'include'
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.courses && data.courses.length > 0) {
+        renderCourses(data.courses);
+      } else {
+        renderCourses(mockCourses);
+      }
+    })
+    .catch(function() {
+      renderCourses(mockCourses);
+    });
