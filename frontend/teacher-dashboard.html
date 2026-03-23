@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="teacher-dashboard.html" class="active">Dashboard</a></li>
+        <li><a href="#">My Courses</a></li>
+        <li><a href="#">Students</a></li>
+        <li><a href="#">Assignments</a></li>
+        <li><a href="#">Grades</a></li>
+        <li><a href="#">Analytics</a></li>
+        <li><a href="#">Messages</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Teacher Dashboard</h1>
+        <div class="user-info">
+          <span id="userName">Teacher</span>
+          <div class="user-avatar" id="userAvatar">T</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="value" id="coursesCount">0</div>
+            <div class="label">My Courses</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">142</div>
+            <div class="label">Total Students</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">8</div>
+            <div class="label">Pending Assignments</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 2rem;">
+          <h3>Create New Course</h3>
+          <form id="createCourseForm">
+            <div class="form-group">
+              <label for="courseTitle">Course Title</label>
+              <input type="text" id="courseTitle" required>
+            </div>
+
+            <div class="form-group">
+              <label for="courseDescription">Description</label>
+              <textarea id="courseDescription"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Course</button>
+          </form>
+
+          <div id="successMessage" class="alert alert-success hidden" style="margin-top: 1rem;">
+            Course created successfully!
+          </div>
+        </div>
+
+        <div id="inviteCodeContainer" class="card" style="margin-bottom: 2rem; display: none;">
+          <h3>Share Invite Code</h3>
+          <p>Share this code with students to invite them to your course:</p>
+          <div class="course-code" id="courseInviteCode">XXXXXX</div>
+          <p style="color: #666; font-size: 0.9rem;">Students can use this code to enroll in the course</p>
+        </div>
+
+        <h3 style="margin-bottom: 1rem;">My Courses</h3>
+        <div id="coursesList" class="courses-grid">
+          <p style="color: #999;">Loading courses...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+  <script>
+    checkAuth('teacher');
+
+    // Update user info
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
+    // Load courses
+    async function loadCourses() {
+      try {
+        const courses = await coursesAPI.list();
+        document.getElementById('coursesCount').textContent = courses.length;
+
+        const coursesList = document.getElementById('coursesList');
+        if (courses.length === 0) {
+          coursesList.innerHTML = '<p style="color: #999;">No courses yet. Create one above!</p>';
+          return;
+        }
+
+        coursesList.innerHTML = courses.map(course => `
+          <div class="course-card">
+            <div class="course-header">
+              <h3>${course.title}</h3>
+            </div>
+            <div class="course-body">
+              <p>${course.description || 'No description'}</p>
+              <div class="course-code">${course.invite_code}</div>
+              <p style="font-size: 0.85rem; color: #666;">Created: ${new Date(course.created_at).toLocaleDateString()}</p>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading courses:', error);
+      }
+    }
+
+    // Handle create course
+    document.getElementById('createCourseForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const title = document.getElementById('courseTitle').value;
+      const description = document.getElementById('courseDescription').value;
+
+      try {
+        const course = await coursesAPI.create(title, description);
+        
+        // Show invite code
+        document.getElementById('courseInviteCode').textContent = course.invite_code;
+        document.getElementById('inviteCodeContainer').style.display = 'block';
+
+        // Show success message
+        document.getElementById('successMessage').classList.remove('hidden');
+        setTimeout(() => {
+          document.getElementById('successMessage').classList.add('hidden');
+        }, 3000);
+
+        // Clear form
+        document.getElementById('createCourseForm').reset();
+
+        // Reload courses
+        loadCourses();
+      } catch (error) {
+        alert('Error creating course: ' + error.message);
+      }
+    });
+
+    // Load initial data
+    loadCourses();
+  </script>
+</body>
+</html>

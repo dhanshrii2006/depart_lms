@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="student-dashboard.html">Dashboard</a></li>
+        <li><a href="my-courses.html">My Courses</a></li>
+        <li><a href="browse-courses.html">Browse Courses</a></li>
+        <li><a href="lesson.html">Lessons</a></li>
+        <li><a href="quiz.html">Quizzes</a></li>
+        <li><a href="#">Assignments</a></li>
+        <li><a href="progress.html" class="active">Progress</a></li>
+        <li><a href="#">Calendar</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Your Progress</h1>
+        <div class="user-info">
+          <span id="userName">Student</span>
+          <div class="user-avatar" id="userAvatar">U</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="value">12</div>
+            <div class="label">Completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">256</div>
+            <div class="label">Learning Hours</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">87%</div>
+            <div class="label">Avg Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">15</div>
+            <div class="label">Day Streak 🔥</div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3>Weekly Progress</h3>
+          <div class="chart-wrapper">
+            <canvas id="weeklyChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3>Quiz Scores by Course</h3>
+          <div class="chart-wrapper">
+            <canvas id="quizChart"></canvas>
+          </div>
+        </div>
+
+        <h3 style="margin-bottom: 1rem;">Course Progress</h3>
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h4 style="margin: 0;">React Fundamentals</h4>
+              <span style="color: #667eea; font-weight: 600;">75%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" style="width: 75%;"></div>
+            </div>
+            <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">6 of 8 modules completed</p>
+          </div>
+
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h4 style="margin: 0;">Web Development Basics</h4>
+              <span style="color: #667eea; font-weight: 600;">60%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" style="width: 60%;"></div>
+            </div>
+            <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">3 of 5 modules completed</p>
+          </div>
+
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h4 style="margin: 0;">JavaScript Advanced</h4>
+              <span style="color: #667eea; font-weight: 600;">90%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" style="width: 90%;"></div>
+            </div>
+            <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">9 of 10 modules completed</p>
+          </div>
+
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h4 style="margin: 0;">Database Design</h4>
+              <span style="color: #667eea; font-weight: 600;">45%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" style="width: 45%;"></div>
+            </div>
+            <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">5 of 11 modules completed</p>
+          </div>
+        </div>
+
+        <h3 style="margin-bottom: 1rem; margin-top: 2rem;">Achievements 🏆</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem;">
+          <div style="background: white; padding: 1.5rem; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🌟</div>
+            <p style="font-size: 0.9rem; font-weight: 600;">First Course</p>
+          </div>
+          <div style="background: white; padding: 1.5rem; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔥</div>
+            <p style="font-size: 0.9rem; font-weight: 600;">7-Day Streak</p>
+          </div>
+          <div style="background: white; padding: 1.5rem; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💯</div>
+            <p style="font-size: 0.9rem; font-weight: 600;">Perfect Score</p>
+          </div>
+          <div style="background: white; padding: 1.5rem; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); opacity: 0.5;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🚀</div>
+            <p style="font-size: 0.9rem; font-weight: 600;">Speed Learner</p>
+            <p style="font-size: 0.75rem; color: #999; margin-top: 0.25rem;">Locked</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    checkAuth('student');
+
+    // Update user info
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
+    // Weekly Progress Chart
+    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+    new Chart(weeklyCtx, {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Progress %',
+          data: [20, 35, 32, 45, 50, 42, 55],
+          borderColor: '#667eea',
+          backgroundColor: 'rgba(102, 126, 234, 0.1)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#667eea',
+          pointBorderColor: '#667eea',
+          pointBorderWidth: 2,
+          pointRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { 
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+
+    // Quiz Scores Chart
+    const quizCtx = document.getElementById('quizChart').getContext('2d');
+    new Chart(quizCtx, {
+      type: 'bar',
+      data: {
+        labels: ['React', 'Web Dev', 'JS Advanced', 'Database'],
+        datasets: [{
+          label: 'Quiz Score',
+          data: [82, 75, 92, 68],
+          backgroundColor: [
+            '#667eea',
+            '#764ba2',
+            '#667eea',
+            '#764ba2'
+          ],
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'x',
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { 
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

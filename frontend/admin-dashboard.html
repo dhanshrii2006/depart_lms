@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="admin-dashboard.html" class="active">Dashboard</a></li>
+        <li><a href="#">Users</a></li>
+        <li><a href="#">Courses</a></li>
+        <li><a href="#">Teachers</a></li>
+        <li><a href="#">Students</a></li>
+        <li><a href="#">Analytics</a></li>
+        <li><a href="#">Reports</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Admin Dashboard</h1>
+        <div class="user-info">
+          <span id="userName">Admin</span>
+          <div class="user-avatar" id="userAvatar">A</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="value">156</div>
+            <div class="label">Total Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">23</div>
+            <div class="label">Total Courses</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">142</div>
+            <div class="label">Active Students</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">14</div>
+            <div class="label">Teachers</div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3>Monthly Registrations</h3>
+          <div class="chart-wrapper">
+            <canvas id="registrationsChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3>User Role Distribution</h3>
+          <div class="chart-wrapper">
+            <canvas id="rolesChart"></canvas>
+          </div>
+        </div>
+
+        <h3 style="margin-bottom: 1rem;">Recent Users</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Joined</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>John Doe</td>
+              <td>john.doe@college.edu</td>
+              <td><span class="badge badge-primary">Student</span></td>
+              <td>March 22, 2026</td>
+              <td><span class="badge badge-success">Active</span></td>
+            </tr>
+            <tr>
+              <td>Sarah Smith</td>
+              <td>sarah.smith@college.edu</td>
+              <td><span class="badge badge-primary">Teacher</span></td>
+              <td>March 20, 2026</td>
+              <td><span class="badge badge-success">Active</span></td>
+            </tr>
+            <tr>
+              <td>Mike Johnson</td>
+              <td>mike.johnson@college.edu</td>
+              <td><span class="badge badge-primary">Student</span></td>
+              <td>March 18, 2026</td>
+              <td><span class="badge badge-success">Active</span></td>
+            </tr>
+            <tr>
+              <td>Emily Brown</td>
+              <td>emily.brown@college.edu</td>
+              <td><span class="badge badge-primary">Student</span></td>
+              <td>March 15, 2026</td>
+              <td><span class="badge badge-warning">Inactive</span></td>
+            </tr>
+            <tr>
+              <td>David Lee</td>
+              <td>david.lee@college.edu</td>
+              <td><span class="badge badge-primary">Teacher</span></td>
+              <td>March 10, 2026</td>
+              <td><span class="badge badge-success">Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+  <script>
+    checkAuth('admin');
+
+    // Update user info
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
+    // Monthly Registrations Chart
+    const registrationsCtx = document.getElementById('registrationsChart').getContext('2d');
+    new Chart(registrationsCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+          label: 'New Users',
+          data: [12, 19, 3, 5, 2, 3, 10, 8, 15, 12, 8, 6],
+          backgroundColor: 'rgba(102, 126, 234, 0.7)',
+          borderColor: '#667eea',
+          borderWidth: 2,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    // User Role Distribution Chart
+    const rolesCtx = document.getElementById('rolesChart').getContext('2d');
+    new Chart(rolesCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Students', 'Teachers', 'Admin'],
+        datasets: [{
+          data: [142, 14, 2],
+          backgroundColor: [
+            '#667eea',
+            '#764ba2',
+            '#f39c12'
+          ],
+          borderColor: 'white',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

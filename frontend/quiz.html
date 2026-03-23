@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<he-ad>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+</he-ad>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="student-dashboard.html">Dashboard</a></li>
+        <li><a href="my-courses.html">My Courses</a></li>
+        <li><a href="browse-courses.html">Browse Courses</a></li>
+        <li><a href="lesson.html">Lessons</a></li>
+        <li><a href="quiz.html" class="active">Quizzes</a></li>
+        <li><a href="#">Assignments</a></li>
+        <li><a href="progress.html">Progress</a></li>
+        <li><a href="#">Calendar</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Quiz</h1>
+        <div class="user-info">
+          <span id="userName">Student</span>
+          <div class="user-avatar" id="userAvatar">U</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="quiz-container" id="quizView">
+          <div class="quiz-header">
+            <div class="quiz-progress">
+              <span id="questionNumber">Question 1 of 10</span>
+              <div class="quiz-progress-bar">
+                <div class="quiz-progress-bar-fill" id="progressFill" style="width: 10%;"></div>
+              </div>
+            </div>
+            <div class="quiz-timer" id="timer">15:00</div>
+          </div>
+
+          <div class="quiz-question">
+            <h3 id="questionText">What does useState hook return?</h3>
+            
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="answer" value="0">
+                <span>A component class</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="answer" value="1">
+                <span>An array with current state and setter function</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="answer" value="2">
+                <span>A promise that resolves to state</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="answer" value="3">
+                <span>A context object</span>
+              </label>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1rem; justify-content: space-between;">
+            <button class="btn btn-secondary" onclick="previousQuestion()" id="prevBtn" disabled>← Previous</button>
+            <button class="btn btn-primary" onclick="nextQuestion()" id="nextBtn">Next →</button>
+            <button class="btn btn-primary" onclick="submitQuiz()" id="submitBtn" style="display: none;">Submit Quiz</button>
+          </div>
+        </div>
+
+        <div class="card" id="resultsView" style="max-width: 600px; display: none;">
+          <h3>Quiz Results</h3>
+          <div class="stat-card" style="margin-bottom: 1.5rem;">
+            <div class="value" id="finalScore">85</div>
+            <div class="label">Your Score</div>
+          </div>
+
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <p style="color: #666; margin-bottom: 0.5rem;"><strong>Performance:</strong></p>
+            <p style="font-size: 1.1rem; color: #667eea;">Excellent Work! 🎉</p>
+          </div>
+
+          <div id="resultDetails" style="margin-bottom: 1.5rem;"></div>
+
+          <button class="btn btn-primary" onclick="retakeQuiz()" style="width: 100%; margin-bottom: 1rem;">Retake Quiz</button>
+          <button class="btn btn-secondary" onclick="window.location.href='my-courses.html'" style="width: 100%;">Back to Courses</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    checkAuth('student');
+
+    // Update user info
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
+    // Quiz data
+    const questions = [
+      {
+        text: 'What does useState hook return?',
+        options: ['A component class', 'An array with current state and setter function', 'A promise that resolves to state', 'A context object'],
+        correct: 1
+      },
+      {
+        text: 'Which hook is used for side effects in React?',
+        options: ['useState', 'useEffect', 'useContext', 'useReducer'],
+        correct: 1
+      },
+      {
+        text: 'What is the virtual DOM?',
+        options: ['A browser API', 'A copy of the real DOM in memory', 'A CSS property', 'A JavaScript library'],
+        correct: 1
+      },
+      {
+        text: 'How do you pass data from parent to child?',
+        options: ['Using state', 'Using props', 'Using context', 'Using localStorage'],
+        correct: 1
+      },
+      {
+        text: 'What is JSX?',
+        options: ['A database', 'JavaScript XML syntax', 'A CSS framework', 'An API endpoint'],
+        correct: 1
+      },
+      {
+        text: 'Which of the following is NOT a React Hook?',
+        options: ['useState', 'useDOM', 'useEffect', 'useContext'],
+        correct: 1
+      },
+      {
+        text: 'What is used to handle routing in React?',
+        options: ['Router', 'React Router', 'Route Handler', 'Page Path'],
+        correct: 1
+      },
+      {
+        text: 'How do you create a class component?',
+        options: ['function MyComponent()', 'class MyComponent extends React.Component', '@component class', 'component class'],
+        correct: 1
+      },
+      {
+        text: 'What is Redux used for?',
+        options: ['Testing', 'State management', 'Styling', 'Routing'],
+        correct: 1
+      },
+      {
+        text: 'How do you prevent unnecessary re-renders?',
+        options: ['useState', 'useCallback or useMemo', 'useEffect', 'useRef'],
+        correct: 1
+      }
+    ];
+
+    let currentQuestion = 0;
+    let answeredQuestions = new Array(questions.length).fill(null);
+    let timeLeft = 900; // 15 minutes
+
+    // Timer
+    const timerInterval = setInterval(() => {
+      timeLeft--;
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      document.getElementById('timer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        submitQuiz();
+      }
+    }, 1000);
+
+    function displayQuestion() {
+      const q = questions[currentQuestion];
+      document.getElementById('questionText').textContent = q.text;
+      document.getElementById('questionNumber').textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+      document.getElementById('progressFill').style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+
+      const options = document.querySelectorAll('input[name="answer"]');
+      options.forEach((opt, i) => {
+        opt.checked = false;
+        opt.parentElement.nextElementSibling.textContent = q.options[i];
+      });
+
+      if (answeredQuestions[currentQuestion] !== null) {
+        options[answeredQuestions[currentQuestion]].checked = true;
+      }
+
+      document.getElementById('prevBtn').disabled = currentQuestion === 0;
+      document.getElementById('nextBtn').style.display = currentQuestion === questions.length - 1 ? 'none' : 'block';
+      document.getElementById('submitBtn').style.display = currentQuestion === questions.length - 1 ? 'block' : 'none';
+    }
+
+    function nextQuestion() {
+      const selected = document.querySelector('input[name="answer"]:checked');
+      if (selected) {
+        answeredQuestions[currentQuestion] = parseInt(selected.value);
+      }
+      
+      if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        displayQuestion();
+      }
+    }
+
+    function previousQuestion() {
+      const selected = document.querySelector('input[name="answer"]:checked');
+      if (selected) {
+        answeredQuestions[currentQuestion] = parseInt(selected.value);
+      }
+      
+      if (currentQuestion > 0) {
+        currentQuestion--;
+        displayQuestion();
+      }
+    }
+
+    function submitQuiz() {
+      clearInterval(timerInterval);
+      
+      const selected = document.querySelector('input[name="answer"]:checked');
+      if (selected) {
+        answeredQuestions[currentQuestion] = parseInt(selected.value);
+      }
+
+      // Calculate score
+      let correctCount = 0;
+      answeredQuestions.forEach((answer, i) => {
+        if (answer === questions[i].correct) {
+          correctCount++;
+        }
+      });
+
+      const score = Math.round((correctCount / questions.length) * 100);
+
+      // Show results
+      document.getElementById('quizView').style.display = 'none';
+      document.getElementById('resultsView').style.display = 'block';
+      document.getElementById('finalScore').textContent = score;
+
+      let feedback = '';
+      if (score >= 90) feedback = 'Outstanding Performance! 🌟';
+      else if (score >= 80) feedback = 'Excellent Work! 🎉';
+      else if (score >= 70) feedback = 'Good Job! 👍';
+      else if (score >= 60) feedback = 'Passed! Keep practicing. 📖';
+      else feedback = 'Need improvement. Review and retry! 💪';
+
+      document.getElementById('resultDetails').innerHTML = `
+        <p style="font-size: 1rem; color: #667eea; font-weight: 600;">${feedback}</p>
+        <p style="color: #666; margin-top: 0.5rem;">You answered ${correctCount} out of ${questions.length} questions correctly.</p>
+      `;
+    }
+
+    function retakeQuiz() {
+      currentQuestion = 0;
+      answeredQuestions = new Array(questions.length).fill(null);
+      timeLeft = 900;
+      
+      document.getElementById('quizView').style.display = 'block';
+      document.getElementById('resultsView').style.display = 'none';
+      
+      displayQuestion();
+      
+      const timerInterval2 = setInterval(() => {
+        timeLeft--;
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('timer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval2);
+          submitQuiz();
+        }
+      }, 1000);
+    }
+
+    // Initialize
+    displayQuestion();
+  </script>
+</body>
+</html>

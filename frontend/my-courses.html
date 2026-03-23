@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Courses - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="student-dashboard.html">Dashboard</a></li>
+        <li><a href="my-courses.html" class="active">My Courses</a></li>
+        <li><a href="browse-courses.html">Browse Courses</a></li>
+        <li><a href="lesson.html">Lessons</a></li>
+        <li><a href="quiz.html">Quizzes</a></li>
+        <li><a href="#">Assignments</a></li>
+        <li><a href="progress.html">Progress</a></li>
+        <li><a href="#">Calendar</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>My Courses</h1>
+        <div class="user-info">
+          <span id="userName">Student</span>
+          <div class="user-avatar" id="userAvatar">U</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="card" style="margin-bottom: 2rem;">
+          <h3>Enroll with Code</h3>
+          <div style="display: flex; gap: 1rem; align-items: flex-end;">
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label for="enrollCode">Invite Code</label>
+              <input type="text" id="enrollCode" placeholder="Enter course code (e.g., ABC123)" style="margin-bottom: 0;">
+            </div>
+            <button class="btn btn-primary" onclick="enrollCourse()">Enroll</button>
+          </div>
+          <div id="enrollMessage" class="alert hidden" style="margin-top: 1rem;"></div>
+        </div>
+
+        <h3 style="margin-bottom: 1rem;">Your Courses</h3>
+        <div id="coursesList" class="courses-grid">
+          <p style="color: #999; grid-column: 1/-1;">Loading courses...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+  <script>
+    checkAuth('student');
+
+    // Update user info
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
+    // Load enrolled courses
+    async function loadCourses() {
+      try {
+        const courses = await enrollmentsAPI.myCourses();
+
+        const coursesList = document.getElementById('coursesList');
+        if (courses.length === 0) {
+          coursesList.innerHTML = '<p style="color: #999; grid-column: 1/-1;">No courses yet. Browse available courses or use an invite code to enroll!</p>';
+          return;
+        }
+
+        coursesList.innerHTML = courses.map(course => `
+          <div class="course-card">
+            <div class="course-header">
+              <h3>${course.title}</h3>
+            </div>
+            <div class="course-body">
+              <p>${course.description || 'No description'}</p>
+              <p style="font-size: 0.9rem; color: #666;">Instructor: ${course.teacher_name}</p>
+              <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: ${course.progress_pct}%;"></div>
+              </div>
+              <p style="font-size: 0.85rem; color: #667eea; font-weight: 600;">${course.progress_pct}% Complete</p>
+              <p style="font-size: 0.85rem; color: #999; margin-top: 0.5rem;">Enrolled: ${new Date(course.enrolled_at).toLocaleDateString()}</p>
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Continue</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading courses:', error);
+        document.getElementById('coursesList').innerHTML = '<p style="color: #999; grid-column: 1/-1;">Error loading courses</p>';
+      }
+    }
+
+    // Enroll with code
+    async function enrollCourse() {
+      const code = document.getElementById('enrollCode').value.trim();
+      const messageDiv = document.getElementById('enrollMessage');
+
+      if (!code) {
+        messageDiv.textContent = 'Please enter a course code';
+        messageDiv.classList.add('alert-error');
+        messageDiv.classList.remove('alert-success', 'hidden');
+        return;
+      }
+
+      try {
+        const result = await enrollmentsAPI.join(code);
+        messageDiv.textContent = '✓ Successfully enrolled in the course!';
+        messageDiv.classList.add('alert-success');
+        messageDiv.classList.remove('alert-error', 'hidden');
+        document.getElementById('enrollCode').value = '';
+        setTimeout(() => {
+          loadCourses();
+          messageDiv.classList.add('hidden');
+        }, 2000);
+      } catch (error) {
+        messageDiv.textContent = 'Error: ' + error.message;
+        messageDiv.classList.add('alert-error');
+        messageDiv.classList.remove('alert-success', 'hidden');
+      }
+    }
+
+    // Load initial data
+    loadCourses();
+  </script>
+</body>
+</html>

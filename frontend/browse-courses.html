@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Courses - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="student-dashboard.html">Dashboard</a></li>
+        <li><a href="my-courses.html">My Courses</a></li>
+        <li><a href="browse-courses.html" class="active">Browse Courses</a></li>
+        <li><a href="lesson.html">Lessons</a></li>
+        <li><a href="quiz.html">Quizzes</a></li>
+        <li><a href="#">Assignments</a></li>
+        <li><a href="progress.html">Progress</a></li>
+        <li><a href="#">Calendar</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Browse Courses</h1>
+        <div class="user-info">
+          <span id="userName">Student</span>
+          <div class="user-avatar" id="userAvatar">U</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <h3 style="margin-bottom: 1rem;">Available Courses</h3>
+        <div class="courses-grid">
+          <div class="course-card">
+            <div class="course-header">
+              <h3>React Fundamentals</h3>
+            </div>
+            <div class="course-body">
+              <p>Learn the basics of React and build interactive UIs. Master hooks, state management, and component lifecycle.</p>
+              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. Sarah Anderson</p>
+              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.8/5 (342 reviews)</p>
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
+            </div>
+          </div>
+
+          <div class="course-card">
+            <div class="course-header">
+              <h3>JavaScript Advanced</h3>
+            </div>
+            <div class="course-body">
+              <p>Deep dive into modern JavaScript with ES6+. Learn async/await, promises, closures, and functional programming.</p>
+              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. John Smith</p>
+              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.9/5 (521 reviews)</p>
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
+            </div>
+          </div>
+
+          <div class="course-card">
+            <div class="course-header">
+              <h3>Web Development Basics</h3>
+            </div>
+            <div class="course-body">
+              <p>Master HTML, CSS, and JavaScript fundamentals. Build responsive websites from scratch.</p>
+              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. Emily Wilson</p>
+              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.7/5 (198 reviews)</p>
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
+            </div>
+          </div>
+
+          <div class="course-card">
+            <div class="course-header">
+              <h3>Database Design</h3>
+            </div>
+            <div class="course-body">
+              <p>Learn SQL, database design patterns, and optimization. Work with PostgreSQL and MongoDB.</p>
+              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. Michael Chen</p>
+              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.6/5 (287 reviews)</p>
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
+            </div>
+          </div>
+
+          <div class="course-card">
+            <div class="course-header">
+              <h3>Node.js & Express</h3>
+            </div>
+            <div class="course-body">
+              <p>Build scalable backend applications. Learn REST APIs, authentication, and deployment best practices.</p>
+              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. David Kumar</p>
+              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.8/5 (412 reviews)</p>
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
+            </div>
+          </div>
+
+          <div class="course-card">
+            <div class="course-header">
+              <h3>CSS Mastery</h3>
+            </div>
+            <div class="course-body">
+              <p>Advanced CSS techniques. Master Flexbox, Grid, animations, and responsive design patterns.</p>
+              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. Lisa Martinez</p>
+              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.9/5 (156 reviews)</p>
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    checkAuth('student');
+
+    // Update user info
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
+    // Handle enroll buttons
+    document.querySelectorAll('.btn-primary').forEach(btn => {
+      btn.addEventListener('click', function() {
+        alert('Enroll feature: Please use the invite code from your instructor. Go to "My Courses" and use the "Enroll with Code" option.');
+      });
+    });
+  </script>
+</body>
+</html>
