@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -34,99 +34,78 @@
       </header>
 
       <div class="content">
-        <div class="card" style="margin-bottom: 2rem;">
-          <h3>Enroll with Code</h3>
-          <div style="display: flex; gap: 1rem; align-items: flex-end;">
-            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-              <label for="enrollCode">Invite Code</label>
-              <input type="text" id="enrollCode" placeholder="Enter course code (e.g., ABC123)" style="margin-bottom: 0;">
-            </div>
+        <div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #667eea;">
+          <h3 style="color: #0369a1; margin-bottom: 1rem;">📝 Enroll in a Course</h3>
+          <div style="display: flex; gap: 1rem;">
+            <input type="text" id="inviteCodeInput" placeholder="Enter invite code e.g. A3F9QZ" style="flex: 1; padding: 12px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px;">
             <button class="btn btn-primary" onclick="enrollCourse()">Enroll</button>
           </div>
-          <div id="enrollMessage" class="alert hidden" style="margin-top: 1rem;"></div>
+          <div id="enrollMessage" style="margin-top: 1rem; padding: 12px; border-radius: 8px; display: none; font-weight: 500;"></div>
         </div>
 
-        <h3 style="margin-bottom: 1rem;">Your Courses</h3>
-        <div id="coursesList" class="courses-grid">
-          <p style="color: #999; grid-column: 1/-1;">Loading courses...</p>
+        <h2 style="margin-bottom: 1.5rem; font-size: 22px;">My Courses</h2>
+        <div id="coursesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+          <p style="color: #999;">Loading courses...</p>
         </div>
       </div>
     </main>
   </div>
 
-  <script src="auth.js"></script>
-  <script src="api.js"></script>
+  <script src="auth.js"></ script>
+  <script src="api.js"></ script>
   <script>
     checkAuth('student');
-
-    // Update user info
     document.getElementById('userName').textContent = getUserName();
     document.getElementById('userAvatar').textContent = getUserInitials();
 
-    // Load enrolled courses
     async function loadCourses() {
       try {
-        const courses = await enrollmentsAPI.myCourses();
-
+        const response = await enrollmentsAPI.myCourses();
         const coursesList = document.getElementById('coursesList');
-        if (courses.length === 0) {
-          coursesList.innerHTML = '<p style="color: #999; grid-column: 1/-1;">No courses yet. Browse available courses or use an invite code to enroll!</p>';
+        if (!response.courses || response.courses.length === 0) {
+          coursesList.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;"><p style="font-size: 16px; color: #666; margin-bottom: 1rem;">You haven'\''t enrolled in any courses yet</p><p style="font-size: 14px; color: #999;">Ask your teacher for an invite code</p></div>';
           return;
         }
-
-        coursesList.innerHTML = courses.map(course => `
-          <div class="course-card">
-            <div class="course-header">
-              <h3>${course.title}</h3>
-            </div>
-            <div class="course-body">
-              <p>${course.description || 'No description'}</p>
-              <p style="font-size: 0.9rem; color: #666;">Instructor: ${course.teacher_name}</p>
-              <div class="progress-bar">
-                <div class="progress-bar-fill" style="width: ${course.progress_pct}%;"></div>
-              </div>
-              <p style="font-size: 0.85rem; color: #667eea; font-weight: 600;">${course.progress_pct}% Complete</p>
-              <p style="font-size: 0.85rem; color: #999; margin-top: 0.5rem;">Enrolled: ${new Date(course.enrolled_at).toLocaleDateString()}</p>
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Continue</button>
-            </div>
-          </div>
-        `).join('');
+        coursesList.innerHTML = response.courses.map(course => <div class="card" style="display: flex; flex-direction: column;"><div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 8px 8px 0 0; margin: -24px -24px 1rem -24px;"><h3 style="margin: 0; color: white;">\</h3></div><p style="color: #666; font-size: 14px; margin-bottom: 1rem;">Teacher: \</p><div style="margin-bottom: 1rem;"><div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;"><span style="font-size: 13px; color: #666;">Progress</span><span style="font-size: 13px; font-weight: 600; color: #667eea;">\%</span></div><div class="progress-bar"><div class="progress-fill" style="width: \%"></div></div></div><button class="btn btn-primary" style="width: 100%; margin-top: auto;">Continue Learning →</button></div>).join('');
       } catch (error) {
         console.error('Error loading courses:', error);
-        document.getElementById('coursesList').innerHTML = '<p style="color: #999; grid-column: 1/-1;">Error loading courses</p>';
+        document.getElementById('coursesList').innerHTML = '<div style="grid-column: 1/-1; color: #ef4444;"><p>Error: ' + error.message + '</p></div>';
       }
     }
 
-    // Enroll with code
     async function enrollCourse() {
-      const code = document.getElementById('enrollCode').value.trim();
+      const inviteCode = document.getElementById('inviteCodeInput').value.trim();
       const messageDiv = document.getElementById('enrollMessage');
-
-      if (!code) {
-        messageDiv.textContent = 'Please enter a course code';
-        messageDiv.classList.add('alert-error');
-        messageDiv.classList.remove('alert-success', 'hidden');
+      if (!inviteCode) {
+        messageDiv.textContent = '❌ Please enter an invite code';
+        messageDiv.style.background = '#fee2e2';
+        messageDiv.style.color = '#991b1b';
+        messageDiv.style.display = 'block';
         return;
       }
-
       try {
-        const result = await enrollmentsAPI.join(code);
-        messageDiv.textContent = '✓ Successfully enrolled in the course!';
-        messageDiv.classList.add('alert-success');
-        messageDiv.classList.remove('alert-error', 'hidden');
-        document.getElementById('enrollCode').value = '';
+        await enrollmentsAPI.join(inviteCode);
+        messageDiv.textContent = '✅ Successfully enrolled! Refreshing...';
+        messageDiv.style.background = '#d1fae5';
+        messageDiv.style.color = '#065f46';
+        messageDiv.style.display = 'block';
+        document.getElementById('inviteCodeInput').value = '';
         setTimeout(() => {
+          messageDiv.style.display = 'none';
           loadCourses();
-          messageDiv.classList.add('hidden');
         }, 2000);
       } catch (error) {
-        messageDiv.textContent = 'Error: ' + error.message;
-        messageDiv.classList.add('alert-error');
-        messageDiv.classList.remove('alert-success', 'hidden');
+        messageDiv.textContent = '❌ ' + error.message;
+        messageDiv.style.background = '#fee2e2';
+        messageDiv.style.color = '#991b1b';
+        messageDiv.style.display = 'block';
       }
     }
 
-    // Load initial data
+    document.getElementById('inviteCodeInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') enrollCourse();
+    });
+
     loadCourses();
   </script>
 </body>

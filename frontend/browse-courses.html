@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -8,124 +8,112 @@
 </head>
 <body>
   <div class="layout">
-    <aside class="sidebar">
-      <div class="sidebar-logo">📚 Acadify</div>
-      <ul class="sidebar-menu">
-        <li><a href="student-dashboard.html">Dashboard</a></li>
-        <li><a href="my-courses.html">My Courses</a></li>
-        <li><a href="browse-courses.html" class="active">Browse Courses</a></li>
-        <li><a href="lesson.html">Lessons</a></li>
-        <li><a href="quiz.html">Quizzes</a></li>
-        <li><a href="#">Assignments</a></li>
-        <li><a href="progress.html">Progress</a></li>
-        <li><a href="#">Calendar</a></li>
-        <li><a href="settings.html">Settings</a></li>
-        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+    <div class="sidebar">
+      <h2>Acadify</h2>
+      <ul>
+        <li onclick="window.location.href='student-dashboard.html'">Dashboard</li>
+        <li onclick="window.location.href='my-courses.html'">My Courses</li>
+        <li class="active">Browse Courses</li>
+        <li onclick="window.location.href='lesson.html'">Lessons</li>
+        <li onclick="window.location.href='quiz.html'">Quizzes</li>
+        <li onclick="window.location.href='progress.html'">Progress</li>
+        <li onclick="window.location.href='settings.html'">Settings</li>
+        <li onclick="logout()">Logout</li>
       </ul>
-    </aside>
-
-    <main class="main-content">
-      <header class="header">
-        <h1>Browse Courses</h1>
-        <div class="user-info">
-          <span id="userName">Student</span>
-          <div class="user-avatar" id="userAvatar">U</div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <span style="font-weight:600; color:#667eea;">Browse Courses</span>
         </div>
-      </header>
-
-      <div class="content">
-        <h3 style="margin-bottom: 1rem;">Available Courses</h3>
-        <div class="courses-grid">
-          <div class="course-card">
-            <div class="course-header">
-              <h3>React Fundamentals</h3>
-            </div>
-            <div class="course-body">
-              <p>Learn the basics of React and build interactive UIs. Master hooks, state management, and component lifecycle.</p>
-              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. Sarah Anderson</p>
-              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.8/5 (342 reviews)</p>
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
-            </div>
-          </div>
-
-          <div class="course-card">
-            <div class="course-header">
-              <h3>JavaScript Advanced</h3>
-            </div>
-            <div class="course-body">
-              <p>Deep dive into modern JavaScript with ES6+. Learn async/await, promises, closures, and functional programming.</p>
-              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. John Smith</p>
-              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.9/5 (521 reviews)</p>
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
-            </div>
-          </div>
-
-          <div class="course-card">
-            <div class="course-header">
-              <h3>Web Development Basics</h3>
-            </div>
-            <div class="course-body">
-              <p>Master HTML, CSS, and JavaScript fundamentals. Build responsive websites from scratch.</p>
-              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. Emily Wilson</p>
-              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.7/5 (198 reviews)</p>
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
-            </div>
-          </div>
-
-          <div class="course-card">
-            <div class="course-header">
-              <h3>Database Design</h3>
-            </div>
-            <div class="course-body">
-              <p>Learn SQL, database design patterns, and optimization. Work with PostgreSQL and MongoDB.</p>
-              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. Michael Chen</p>
-              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.6/5 (287 reviews)</p>
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
-            </div>
-          </div>
-
-          <div class="course-card">
-            <div class="course-header">
-              <h3>Node.js & Express</h3>
-            </div>
-            <div class="course-body">
-              <p>Build scalable backend applications. Learn REST APIs, authentication, and deployment best practices.</p>
-              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. David Kumar</p>
-              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.8/5 (412 reviews)</p>
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
-            </div>
-          </div>
-
-          <div class="course-card">
-            <div class="course-header">
-              <h3>CSS Mastery</h3>
-            </div>
-            <div class="course-body">
-              <p>Advanced CSS techniques. Master Flexbox, Grid, animations, and responsive design patterns.</p>
-              <p style="font-size: 0.9rem; color: #666;"><strong>Instructor:</strong> Prof. Lisa Martinez</p>
-              <p style="font-size: 0.9rem; color: #f39c12;">⭐ 4.9/5 (156 reviews)</p>
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enroll</button>
-            </div>
+        <div class="topbar-right">
+          <div class="profile">
+            <div class="profile-avatar" id="userInitials">ST</div>
+            <span id="userName">Student</span>
           </div>
         </div>
       </div>
-    </main>
+      <div class="page-container">
+        <div class="welcome-banner">
+          <h2>Browse Courses</h2>
+          <p>Explore available courses and enroll using invite codes</p>
+        </div>
+        <div id="coursesGrid" class="courses-grid"></div>
+      </div>
+    </div>
   </div>
 
   <script src="auth.js"></script>
+  <script src="api.js"></script>
   <script>
     checkAuth('student');
 
-    // Update user info
-    document.getElementById('userName').textContent = getUserName();
-    document.getElementById('userAvatar').textContent = getUserInitials();
+    var userName = localStorage.getItem('userName') || 'Student';
+    var userInitials = localStorage.getItem('userInitials') || 'ST';
+    document.getElementById('userName').textContent = userName;
+    document.getElementById('userInitials').textContent = userInitials;
 
-    // Handle enroll buttons
-    document.querySelectorAll('.btn-primary').forEach(btn => {
-      btn.addEventListener('click', function() {
-        alert('Enroll feature: Please use the invite code from your instructor. Go to "My Courses" and use the "Enroll with Code" option.');
+    var mockCourses = [
+      { id: 1, title: 'React Advanced', teacher_name: 'Sarah Johnson', rating: '4.8', students: '2.3k', category: 'Frontend' },
+      { id: 2, title: 'Node.js API Development', teacher_name: 'Alex Rodriguez', rating: '4.7', students: '1.8k', category: 'Backend' },
+      { id: 3, title: 'Python for Data Science', teacher_name: 'Lisa Zhang', rating: '4.9', students: '5.1k', category: 'Data Science' },
+      { id: 4, title: 'TypeScript Mastery', teacher_name: 'David Martinez', rating: '4.6', students: '1.2k', category: 'Frontend' },
+      { id: 5, title: 'AWS Cloud Essentials', teacher_name: 'Nathan Brown', rating: '4.8', students: '3.4k', category: 'Cloud' },
+      { id: 6, title: 'UI/UX Design Fundamentals', teacher_name: 'Emma Wilson', rating: '4.9', students: '2.7k', category: 'Design' }
+    ];
+
+    function renderCourses(courses) {
+      var grid = document.getElementById('coursesGrid');
+      grid.innerHTML = '';
+      for (var i = 0; i < courses.length; i++) {
+        var course = courses[i];
+        var card = document.createElement('div');
+        card.className = 'course-card';
+        card.innerHTML =
+          '<div class="course-card-header">' + course.category + '</div>' +
+          '<div class="course-card-body">' +
+            '<h3>' + course.title + '</h3>' +
+            '<p>by ' + course.teacher_name + '</p>' +
+            '<p style="font-size:12px;color:#f59e0b;margin:8px 0;">★ ' + course.rating + ' • ' + course.students + ' students</p>' +
+            '<button class="btn btn-primary btn-small btn-block" onclick="enrollCourse(' + "'" + course.title + "'" + ')">Enroll Now</button>' +
+          '</div>';
+        grid.appendChild(card);
+      }
+    }
+
+    function enrollCourse(title) {
+      var code = prompt('Enter invite code for: ' + title);
+      if (!code) return;
+      fetch('http://localhost:5000/api/enrollments/join', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invite_code: code.trim().toUpperCase() })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.error) {
+          alert('Error: ' + data.error);
+        } else {
+          alert('Successfully enrolled in ' + title + '!');
+        }
+      })
+      .catch(function(err) {
+        alert('Error: ' + err.message);
       });
+    }
+
+    fetch('http://localhost:5000/api/courses/public', {
+      credentials: 'include'
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.courses && data.courses.length > 0) {
+        renderCourses(data.courses);
+      } else {
+        renderCourses(mockCourses);
+      }
+    })
+    .catch(function() {
+      renderCourses(mockCourses);
     });
-  </script>
-</body>
-</html>

@@ -15,8 +15,19 @@ function checkAuth(requiredRole) {
 }
 
 function logout() {
-  localStorage.clear();
-  window.location.href = 'index.html';
+  // Clear localStorage
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('userName');
+  localStorage.removeItem('userInitials');
+  localStorage.removeItem('authToken');
+  
+  // Call logout endpoint
+  fetch('http://localhost:5000/api/auth/logout', {
+    method: 'POST',
+    credentials: 'include'
+  }).finally(() => {
+    window.location.href = 'index.html';
+  });
 }
 
 function getUserRole() {

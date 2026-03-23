@@ -1,25 +1,22 @@
 const BASE = 'http://localhost:5000';
 
 async function fetchWithAuth(path, options = {}) {
-  const defaultOptions = {
+  const { headers = {}, ...rest } = options;
+  const token = localStorage.getItem('authToken');
+  
+  const response = await fetch(`http://localhost:5000${path}`, {
+    ...rest,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...headers
     }
-  };
-
-  const response = await fetch(`${BASE}${path}`, {
-    ...defaultOptions,
-    ...options,
-    headers: defaultOptions.headers
   });
-
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'API error');
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Request failed');
   }
-
   return response.json();
 }
 

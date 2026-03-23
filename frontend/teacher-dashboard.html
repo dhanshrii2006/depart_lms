@@ -64,20 +64,16 @@
             <button type="submit" class="btn btn-primary">Create Course</button>
           </form>
 
-          <div id="successMessage" class="alert alert-success hidden" style="margin-top: 1rem;">
-            Course created successfully!
+          <div id="inviteCodeContainer" class="card" style="margin-top: 1.5rem; display: none; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #10b981;">
+            <h3 style="color: #059669; margin-bottom: 1rem;">✅ Share Invite Code</h3>
+            <p style="color: #666; margin-bottom: 1rem;">Share this code with your students:</p>
+            <div id="courseInviteCode" style="background: white; padding: 1.5rem; border-radius: 8px; font-size: 32px; font-weight: 700; color: #667eea; text-align: center; letter-spacing: 4px; margin-bottom: 1rem; font-family: monospace;">XXXXXX</div>
+            <button class="btn btn-primary" onclick="copyInviteCode()">📋 Copy Code</button>
           </div>
         </div>
 
-        <div id="inviteCodeContainer" class="card" style="margin-bottom: 2rem; display: none;">
-          <h3>Share Invite Code</h3>
-          <p>Share this code with students to invite them to your course:</p>
-          <div class="course-code" id="courseInviteCode">XXXXXX</div>
-          <p style="color: #666; font-size: 0.9rem;">Students can use this code to enroll in the course</p>
-        </div>
-
-        <h3 style="margin-bottom: 1rem;">My Courses</h3>
-        <div id="coursesList" class="courses-grid">
+        <h3 style="margin-bottom: 1rem; margin-top: 2rem;">My Courses</h3>
+        <div id="coursesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
           <p style="color: #999;">Loading courses...</p>
         </div>
       </div>
@@ -130,17 +126,13 @@
       const description = document.getElementById('courseDescription').value;
 
       try {
+        console.log('Cookies available:', document.cookie);
+        console.log('About to create course with credentials');
         const course = await coursesAPI.create(title, description);
-        
+
         // Show invite code
         document.getElementById('courseInviteCode').textContent = course.invite_code;
         document.getElementById('inviteCodeContainer').style.display = 'block';
-
-        // Show success message
-        document.getElementById('successMessage').classList.remove('hidden');
-        setTimeout(() => {
-          document.getElementById('successMessage').classList.add('hidden');
-        }, 3000);
 
         // Clear form
         document.getElementById('createCourseForm').reset();
@@ -152,7 +144,13 @@
       }
     });
 
-    // Load initial data
+    function copyInviteCode() {
+      const code = document.getElementById('courseInviteCode').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('✅ Code copied to clipboard!');
+      });
+    }
+    // Load courses on page load
     loadCourses();
   </script>
 </body>
