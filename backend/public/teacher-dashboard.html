@@ -92,7 +92,7 @@
     // Load courses
     async function loadCourses() {
       try {
-        const courses = await coursesAPI.list();
+        const courses = await fetchWithAuth('/api/courses');
         document.getElementById('coursesCount').textContent = courses.length;
 
         const coursesList = document.getElementById('coursesList');
@@ -108,13 +108,14 @@
             </div>
             <div class="course-body">
               <p>${course.description || 'No description'}</p>
-              <div class="course-code">${course.invite_code}</div>
+              <div class="course-code">Invite Code: ${course.invite_code}</div>
               <p style="font-size: 0.85rem; color: #666;">Created: ${new Date(course.created_at).toLocaleDateString()}</p>
             </div>
           </div>
         `).join('');
       } catch (error) {
         console.error('Error loading courses:', error);
+        document.getElementById('coursesList').innerHTML = '<p style="color: #ef4444;">Failed to load courses. Please try again later.</p>';
       }
     }
 
@@ -126,11 +127,12 @@
       const description = document.getElementById('courseDescription').value;
 
       try {
-        console.log('Cookies available:', document.cookie);
-        console.log('About to create course with credentials');
-        const course = await coursesAPI.create(title, description);
+        const course = await fetchWithAuth('/api/courses', {
+          method: 'POST',
+          body: JSON.stringify({ title, description })
+        });
 
-        // Show invite code
+        // Show invite code with success message
         document.getElementById('courseInviteCode').textContent = course.invite_code;
         document.getElementById('inviteCodeContainer').style.display = 'block';
 
@@ -140,6 +142,7 @@
         // Reload courses
         loadCourses();
       } catch (error) {
+        console.error('Error creating course:', error);
         alert('Error creating course: ' + error.message);
       }
     });
@@ -147,7 +150,10 @@
     function copyInviteCode() {
       const code = document.getElementById('courseInviteCode').textContent;
       navigator.clipboard.writeText(code).then(() => {
-        alert('✅ Code copied to clipboard!');
+        alert('Code copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy code. Please copy manually.');
       });
     }
     // Load courses on page load

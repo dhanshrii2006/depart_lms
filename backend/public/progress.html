@@ -37,7 +37,7 @@
       <div class="content">
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="value">12</div>
+            <div class="value" id="completedCount">0</div>
             <div class="label">Completed</div>
           </div>
           <div class="stat-card">
@@ -69,50 +69,8 @@
         </div>
 
         <h3 style="margin-bottom: 1rem;">Course Progress</h3>
-        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h4 style="margin: 0;">React Fundamentals</h4>
-              <span style="color: #667eea; font-weight: 600;">75%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-bar-fill" style="width: 75%;"></div>
-            </div>
-            <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">6 of 8 modules completed</p>
-          </div>
-
-          <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h4 style="margin: 0;">Web Development Basics</h4>
-              <span style="color: #667eea; font-weight: 600;">60%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-bar-fill" style="width: 60%;"></div>
-            </div>
-            <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">3 of 5 modules completed</p>
-          </div>
-
-          <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h4 style="margin: 0;">JavaScript Advanced</h4>
-              <span style="color: #667eea; font-weight: 600;">90%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-bar-fill" style="width: 90%;"></div>
-            </div>
-            <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">9 of 10 modules completed</p>
-          </div>
-
-          <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h4 style="margin: 0;">Database Design</h4>
-              <span style="color: #667eea; font-weight: 600;">45%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-bar-fill" style="width: 45%;"></div>
-            </div>
-            <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">5 of 11 modules completed</p>
-          </div>
+        <div id="courseProgressContainer" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div style="padding: 2rem; text-align: center; color: #999;">Loading courses...</div>
         </div>
 
         <h3 style="margin-bottom: 1rem; margin-top: 2rem;">Achievements 🏆</h3>
@@ -139,6 +97,7 @@
     </main>
   </div>
 
+  <script src="api.js"></script>
   <script src="auth.js"></script>
   <script>
     checkAuth('student');
@@ -146,6 +105,42 @@
     // Update user info
     document.getElementById('userName').textContent = getUserName();
     document.getElementById('userAvatar').textContent = getUserInitials();
+
+    // Load course progress data
+    async function loadCourseProgress() {
+      try {
+        const courses = await fetchWithAuth('/api/enrollments/my-courses');
+        
+        // Update completed count
+        const completedCount = courses.filter(c => c.progress === 100).length;
+        document.getElementById('completedCount').textContent = completedCount;
+        
+        // Render course cards
+        const container = document.getElementById('courseProgressContainer');
+        if (courses.length === 0) {
+          container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #999;">No enrolled courses yet. <a href="browse-courses.html">Browse courses</a></div>';
+          return;
+        }
+        
+        container.innerHTML = courses.map(course => `
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h4 style="margin: 0;">${course.title}</h4>
+              <span style="color: #667eea; font-weight: 600;">${course.progress}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" style="width: ${course.progress}%;"></div>
+            </div>
+            <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">Taught by ${course.teacher_name}</p>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading courses:', error);
+        document.getElementById('courseProgressContainer').innerHTML = '<div style="padding: 2rem; text-align: center; color: #ef4444;">Error loading courses. Please try again later.</div>';
+      }
+    }
+
+    loadCourseProgress();
 
     // Weekly Progress Chart
     const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');

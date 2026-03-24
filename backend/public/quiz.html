@@ -97,6 +97,7 @@
   </div>
 
   <script src="auth.js"></script>
+  <script src="api.js"></script>
   <script>
     checkAuth('student');
 
@@ -238,7 +239,7 @@
 
       const score = Math.round((correctCount / questions.length) * 100);
 
-      // Show results
+      // Show results (loading state)
       document.getElementById('quizView').style.display = 'none';
       document.getElementById('resultsView').style.display = 'block';
       document.getElementById('finalScore').textContent = score;
@@ -253,30 +254,43 @@
       document.getElementById('resultDetails').innerHTML = `
         <p style="font-size: 1rem; color: #667eea; font-weight: 600;">${feedback}</p>
         <p style="color: #666; margin-top: 0.5rem;">You answered ${correctCount} out of ${questions.length} questions correctly.</p>
+        <p style="color: #999; font-size: 0.9rem; margin-top: 1rem; font-style: italic;">Saving score...</p>
       `;
+
+      // Save quiz attempt to backend
+      saveQuizAttempt(score, correctCount, answeredQuestions);
     }
 
-    function retakeQuiz() {
-      currentQuestion = 0;
-      answeredQuestions = new Array(questions.length).fill(null);
-      timeLeft = 900;
-      
-      document.getElementById('quizView').style.display = 'block';
-      document.getElementById('resultsView').style.display = 'none';
-      
-      displayQuestion();
-      
-      const timerInterval2 = setInterval(() => {
-        timeLeft--;
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        document.getElementById('timer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval2);
-          submitQuiz();
-        }
-      }, 1000);
+    async function saveQuizAttempt(score, correctCount, answers) {
+      try {
+        const userId = localStorage.getItem('userId');
+        const response = await fetchWithAuth('/api/quiz/attempt', {
+          method: 'POST',
+          body: JSON.stringify({
+            quiz_id: 1,
+            student_id: userId,
+            answers: answers,
+            score: score,
+            total: questions.length
+          })
+        });
+
+        // Show success message
+        const resultDetails = document.getElementById('resultDetails');
+        const existingContent = resultDetails.innerHTML;
+        resultDetails.innerHTML = existingContent + 
+          '<p style="color: #10b981; font-size: 0.85rem; margin-top: 1rem;">✓ Score saved successfully!</p>';
+
+      } catch (error) {
+        console.error('Error saving quiz:', error);
+        // Show warning but keep results visible
+        const resultDetails = document.getElementById('resultDetails');
+        const existingContent = resultDetails.innerHTML;
+        resultDetails.innerHTML = existingContent.replace(
+          '<p style="color: #999; font-size: 0.9rem; margin-top: 1rem; font-style: italic;">Saving score...</p>',
+          '<p style="color: #f59e0b; font-size: 0.85rem; margin-top: 1rem;">⚠ Could not save score (local results displayed)</p>'
+        );
+      }
     }
 
     // Initialize

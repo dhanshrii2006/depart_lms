@@ -37,15 +37,15 @@
       <div class="content">
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="value">4</div>
+            <div class="value" id="inProgressCount">...</div>
             <div class="label">Courses in Progress</div>
           </div>
           <div class="stat-card">
-            <div class="value">12</div>
+            <div class="value" id="completedCount">...</div>
             <div class="label">Completed</div>
           </div>
           <div class="stat-card">
-            <div class="value">5</div>
+            <div class="value" id="dueCount">...</div>
             <div class="label">Assignments Due</div>
           </div>
         </div>
@@ -138,6 +138,31 @@
     // Update user info
     document.getElementById('userName').textContent = getUserName();
     document.getElementById('userAvatar').textContent = getUserInitials();
+
+    // Load dashboard stats from API
+    async function loadDashboardStats() {
+      try {
+        const courses = await fetchWithAuth('/api/enrollments/my-courses');
+        
+        // Calculate stats
+        const inProgress = courses.filter(c => c.progress > 0 && c.progress < 100).length;
+        const completed = courses.filter(c => c.progress === 100).length;
+        const due = courses.filter(c => c.progress < 100).length;
+        
+        // Update DOM
+        document.getElementById('inProgressCount').textContent = inProgress;
+        document.getElementById('completedCount').textContent = completed;
+        document.getElementById('dueCount').textContent = due;
+      } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        // Show 0 on error
+        document.getElementById('inProgressCount').textContent = '0';
+        document.getElementById('completedCount').textContent = '0';
+        document.getElementById('dueCount').textContent = '0';
+      }
+    }
+
+    loadDashboardStats();
 
     // Weekly Learning Hours Chart
     const learningCtx = document.getElementById('learningChart').getContext('2d');

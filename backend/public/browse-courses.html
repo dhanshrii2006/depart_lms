@@ -81,39 +81,37 @@
       }
     }
 
-    function enrollCourse(title) {
+    async function enrollCourse(title) {
       var code = prompt('Enter invite code for: ' + title);
       if (!code) return;
-      fetch('http://localhost:5000/api/enrollments/join', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invite_code: code.trim().toUpperCase() })
-      })
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
+      try {
+        const data = await fetchWithAuth('/api/enrollments/join', {
+          method: 'POST',
+          body: JSON.stringify({ invite_code: code.trim().toUpperCase() })
+        });
         if (data.error) {
           alert('Error: ' + data.error);
         } else {
           alert('Successfully enrolled in ' + title + '!');
+          loadPublicCourses();
         }
-      })
-      .catch(function(err) {
+      } catch (err) {
         alert('Error: ' + err.message);
-      });
+      }
     }
 
-    fetch('http://localhost:5000/api/courses/public', {
-      credentials: 'include'
-    })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.courses && data.courses.length > 0) {
-        renderCourses(data.courses);
-      } else {
+    async function loadPublicCourses() {
+      try {
+        const data = await fetchWithAuth('/api/courses/public');
+        if (data.courses && data.courses.length > 0) {
+          renderCourses(data.courses);
+        } else {
+          renderCourses(mockCourses);
+        }
+      } catch (err) {
+        console.error('Error loading courses:', err);
         renderCourses(mockCourses);
       }
-    })
-    .catch(function() {
-      renderCourses(mockCourses);
-    });
+    }
+    
+    loadPublicCourses();

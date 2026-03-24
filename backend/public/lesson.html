@@ -118,6 +118,7 @@
   </div>
 
   <script src="auth.js"></script>
+  <script src="api.js"></script>
   <script>
     checkAuth('student');
 
@@ -125,9 +126,79 @@
     document.getElementById('userName').textContent = getUserName();
     document.getElementById('userAvatar').textContent = getUserInitials();
 
+    // Get courseId from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('courseId');
+
     function markComplete() {
-      alert('Lesson marked as complete! ✓');
+      alert('Lesson marked as complete! âœ"');
     }
+
+    // Load course data from API
+    async function loadCourseData() {
+      if (!courseId) {
+        console.error('No courseId provided in URL');
+        return;
+      }
+
+      try {
+        // Show loading state in sidebar
+        const lessonsContainer = document.querySelector('div[style*="max-height: 600px"]');
+        if (lessonsContainer) {
+          lessonsContainer.innerHTML = '<p style="padding: 1rem; color: #999;">Loading lessons...</p>';
+        }
+
+        // Fetch course data from backend
+        const course = await fetchWithAuth('/api/courses/' + courseId);
+
+        // Update lesson title
+        const lessonTitle = document.querySelector('.card h3');
+        if (lessonTitle && course.title) {
+          lessonTitle.textContent = course.title;
+        }
+
+        // Populate sidebar with modules
+        if (course.modules && course.modules.length > 0) {
+          let modulesHTML = '';
+          course.modules.forEach(function(module, index) {
+            const isFirst = index === 0;
+            const backgroundColor = isFirst 
+              ? 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;'
+              : '';
+            const borderRadius = isFirst ? 'border-radius: 8px;' : '';
+            
+            modulesHTML += '<div class="lesson-item" style="padding: 0.75rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; ' + 
+                          backgroundColor + borderRadius + 
+                          ' margin-bottom: 0.5rem;">' +
+                          '<p style="font-weight: 600; font-size: 0.9rem;">' + 
+                          (isFirst ? 'âœ" ' : '') + module.title + 
+                          '</p>' +
+                          '<p style="font-size: 0.8rem; ' + 
+                          (isFirst ? 'color: rgba(255,255,255,0.8);' : 'color: #999;') + 
+                          ' margin-top: 0.25rem;">Module ' + (index + 1) + '</p>' +
+                          '</div>';
+          });
+
+          if (lessonsContainer) {
+            lessonsContainer.innerHTML = modulesHTML;
+          }
+        } else {
+          if (lessonsContainer) {
+            lessonsContainer.innerHTML = '<p style="padding: 1rem; color: #999;">No modules available in this course.</p>';
+          }
+        }
+
+      } catch (error) {
+        console.error('Error loading course:', error);
+        const lessonsContainer = document.querySelector('div[style*="max-height: 600px"]');
+        if (lessonsContainer) {
+          lessonsContainer.innerHTML = '<p style="padding: 1rem; color: #ef4444;">Error loading lessons: ' + error.message + '</p>';
+        }
+      }
+    }
+
+    // Load course data on page load
+    loadCourseData();
   </script>
 </body>
 </html>
