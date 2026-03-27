@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grades - Acadify</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="teacher.css">
+</head>
+<body>
+  <div class="page-container">
+    <div class="sidebar">
+      <h2>Menu</h2>
+      <a href="../teacher-dashboard.html">Dashboard</a>
+      <a href="../my-courses.html">My Courses</a>
+      <a href="students.html">Students</a>
+      <a href="assignments.html">Assignments</a>
+      <a href="grades.html" class="active">Grades</a>
+      <a href="analytics.html">Analytics</a>
+      <a href="messages.html">Messages</a>
+      <a href="../settings.html">Settings</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1>Grades</h1>
+        <div class="user-info">
+          <span id="userDisplay">User</span>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="card">
+          <h2>Student Performance</h2>
+          <div id="loadingState" class="loading-state">
+            <p>Loading grades...</p>
+          </div>
+          <div id="errorState" class="error-message" style="display: none;"></div>
+          <div id="emptyState" class="empty-state" style="display: none;">
+            <p>No grades available yet. Students haven't completed any quizzes.</p>
+          </div>
+          <table id="gradesTable" style="display: none;">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Score</th>
+                <th>Percentage</th>
+              </tr>
+            </thead>
+            <tbody id="gradesBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../api.js"></script>
+  <script src="../auth.js"></script>
+  <script>
+    // Check authentication
+    checkAuth('teacher');
+
+    // Load user info
+    const userName = localStorage.getItem('userName') || 'Teacher';
+    document.getElementById('userDisplay').textContent = userName;
+
+    // Load grades on page load
+    loadGrades();
+
+    async function loadGrades() {
+      try {
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const emptyState = document.getElementById('emptyState');
+        const gradesTable = document.getElementById('gradesTable');
+        const gradesBody = document.getElementById('gradesBody');
+
+        // Show loading state
+        loadingState.style.display = 'block';
+        errorState.style.display = 'none';
+        emptyState.style.display = 'none';
+        gradesTable.style.display = 'none';
+        gradesBody.innerHTML = '';
+
+        // Fetch grades data
+        const grades = await fetchWithAuth('/api/teacher/grades');
+
+        if (!grades || grades.length === 0) {
+          loadingState.style.display = 'none';
+          emptyState.style.display = 'block';
+          return;
+        }
+
+        // Calculate percentage and populate table
+        grades.forEach(grade => {
+          const percentage = ((grade.score / grade.total) * 100).toFixed(1);
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${grade.student_name}</td>
+            <td>${grade.course_title}</td>
+            <td>${grade.score} / ${grade.total}</td>
+            <td>
+              <span class="badge ${getGradeBadgeClass(percentage)}">
+                ${percentage}%
+              </span>
+            </td>
+          `;
+          gradesBody.appendChild(row);
+        });
+
+        // Show table, hide loading
+        loadingState.style.display = 'none';
+        gradesTable.style.display = 'table';
+      } catch (error) {
+        console.error('Error loading grades:', error);
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        
+        loadingState.style.display = 'none';
+        errorState.style.display = 'block';
+        errorState.textContent = `Error loading grades: ${error.message}`;
+      }
+    }
+
+    function getGradeBadgeClass(percentage) {
+      const pct = parseFloat(percentage);
+      if (pct >= 80) return 'badge-success'; // A
+      if (pct >= 70) return 'badge-info';    // B
+      if (pct >= 60) return 'badge-warning'; // C
+      return 'badge-danger';                  // F
+    }
+  </script>
+</body>
+</html>

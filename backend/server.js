@@ -302,7 +302,77 @@ app.get('/api/courses/:id', verifyToken, async (req, res) => {
   }
 });
 
-// === ENROLLMENTS ROUTES ===
+  // GET /api/courses/:id/students - Get enrolled students for a course
+  app.get('/api/courses/:id/students', verifyToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Verify teacher owns this course
+      const courseResult = await pool.query(
+        'SELECT * FROM courses WHERE id = $1 AND teacher_id = $2',
+        [id, req.user.id]
+      );
+
+      if (courseResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Course not found or access denied' });
+      }
+
+      // Get enrolled students with progress
+      const studentsResult = await pool.query(
+        `SELECT DISTINCT 
+          users.id, 
+          users.name, 
+          users.email,
+          COALESCE(
+            (
+              SELECT AVG(CAST((qa.score::float / qa.total::float) * 100 AS INTEGER))
+              FROM quiz_attempts qa
+              JOIN quizzes q ON qa.quiz_id = q.id
+              JOIN modules m ON q.module_id = m.id
+              WHERE m.course_id = $1 AND qa.student_id = users.id
+            ),
+            0
+          ) as progress
+        FROM enrollments
+        JOIN users ON enrollments.student_id = users.id
+        WHERE enrollments.course_id = $1
+        ORDER BY users.name ASC`,
+        [id]
+      );
+
+      res.json({
+        students: studentsResult.rows
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /api/teacher/grades - Get all grade data for teacher's students
+  app.get('/api/teacher/grades', verifyToken, async (req, res) => {
+    try {
+      // Get all quiz attempts for students in teacher's courses
+      const gradesResult = await pool.query(
+        `SELECT 
+          users.name as student_name,
+          courses.title as course_title,
+          quiz_attempts.score,
+          quiz_attempts.total
+        FROM quiz_attempts
+        JOIN users ON quiz_attempts.student_id = users.id
+        JOIN quizzes ON quiz_attempts.quiz_id = quizzes.id
+        JOIN modules ON quizzes.module_id = modules.id
+        JOIN courses ON modules.course_id = courses.id
+        WHERE courses.teacher_id = $1
+        ORDER BY users.name ASC, courses.title ASC, quiz_attempts.id DESC`,
+        [req.user.id]
+      );
+
+      res.json(gradesResult.rows);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
 // POST /api/enrollments/join
 app.post('/api/enrollments/join', verifyToken, checkRole('student'), async (req, res) => {
