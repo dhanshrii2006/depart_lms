@@ -440,11 +440,9 @@
       <ul class="sidebar-menu">
         <li><a href="teacher-dashboard.html"><i class="fas fa-chalkboard-teacher mr-2"></i> Dashboard</a></li>
         <li><a href="course-creation.html" class="active"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
-        <li><a href="my-courses.html"><i class="fas fa-folder-open mr-2"></i> My Courses</a></li>
-        <li><a href="#"><i class="fas fa-users mr-2"></i> Cohorts</a></li>
+        <li><a href="teacher-my-courses.html"><i class="fas fa-folder-open mr-2"></i> My Courses</a></li>
         <li><a href="assessment.html"><i class="fas fa-quiz mr-2"></i> Assessments</a></li>
-        <li><a href="calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
-        <li><a href="settings.html"><i class="fas fa-cog mr-2"></i> Preferences</a></li>
+        <li><a href="teacher-calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
         <li><a href="#" onclick="logout(); return false;">Logout</a></li>
       </ul>
     </aside>
@@ -458,7 +456,72 @@
         </div>
       </header>
 
-      <div class="content">
+<div class="content">
+        <!-- Interactive Questions Modal -->
+        <div id="questionnaire-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);">
+          <div style="background: #1a202c; border-radius: 1.5rem; padding: 3rem; max-width: 600px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid #667eea;">
+            <h2 style="color: white; margin-bottom: 0.5rem; font-size: 1.8rem;">🚀 Create Your Next Course</h2>
+            <p style="color: #a3aac4; margin-bottom: 2rem; font-size: 0.95rem;">Let's set up your course with a few quick questions.</p>
+
+            <div id="question-1" class="question-slide">
+              <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: white; font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem;">What's your course title?</label>
+                <input type="text" id="q-title" placeholder="e.g., Advanced React Architecture" style="width: 100%; padding: 0.75rem 1rem; background: #0f1419; border: 2px solid #667eea; border-radius: 0.5rem; color: white; font-size: 1rem; box-sizing: border-box;">
+              </div>
+              <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: white; font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem;">Brief description:</label>
+                <textarea id="q-description" placeholder="What will students learn?" style="width: 100%; padding: 0.75rem 1rem; background: #0f1419; border: 2px solid #667eea; border-radius: 0.5rem; color: white; font-size: 1rem; min-height: 80px; resize: none; box-sizing: border-box;"></textarea>
+              </div>
+              <button onclick="nextQuestion()" style="width: 100%; padding: 0.75rem; background: #667eea; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 1rem; transition: all 0.3s;">Next →</button>
+            </div>
+
+            <div id="question-2" class="question-slide" style="display: none;">
+              <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: white; font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem;">Select category:</label>
+                <select id="q-category" style="width: 100%; padding: 0.75rem 1rem; background: #0f1419; border: 2px solid #667eea; border-radius: 0.5rem; color: white; font-size: 1rem; box-sizing: border-box;">
+                  <option value="">-- Choose Category --</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Business">Business</option>
+                  <option value="Design">Design</option>
+                  <option value="Science">Science</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Languages">Languages</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: white; font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem;">Course level:</label>
+                <select id="q-level" style="width: 100%; padding: 0.75rem 1rem; background: #0f1419; border: 2px solid #667eea; border-radius: 0.5rem; color: white; font-size: 1rem; box-sizing: border-box;">
+                  <option value="">-- Choose Level --</option>
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                  <option value="Expert">Expert</option>
+                </select>
+              </div>
+              <div style="display: flex; gap: 1rem;">
+                <button onclick="prevQuestion()" style="flex: 1; padding: 0.75rem; background: #764ba2; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 1rem;">← Back</button>
+                <button onclick="nextQuestion()" style="flex: 1; padding: 0.75rem; background: #667eea; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 1rem;">Next →</button>
+              </div>
+            </div>
+
+            <div id="question-3" class="question-slide" style="display: none;">
+              <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: white; font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem;">Duration (hours):</label>
+                <input type="number" id="q-duration" placeholder="e.g., 40" min="1" style="width: 100%; padding: 0.75rem 1rem; background: #0f1419; border: 2px solid #667eea; border-radius: 0.5rem; color: white; font-size: 1rem; box-sizing: border-box;">
+              </div>
+              <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: white; font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem;">Max students (optional):</label>
+                <input type="number" id="q-maxstudents" placeholder="Leave blank for unlimited" style="width: 100%; padding: 0.75rem 1rem; background: #0f1419; border: 2px solid #667eea; border-radius: 0.5rem; color: white; font-size: 1rem; box-sizing: border-box;">
+              </div>
+              <div style="display: flex; gap: 1rem;">
+                <button onclick="prevQuestion()" style="flex: 1; padding: 0.75rem; background: #764ba2; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 1rem;">← Back</button>
+                <button onclick="completeQuestionnaire()" style="flex: 1; padding: 0.75rem; background: #667eea; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 1rem;">Start Creating! 🎉</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div class="course-creation-container">
           <div class="success-message" id="successMessage">
             ✓ Course saved successfully! You can continue editing or publish when ready.
@@ -676,6 +739,72 @@
 
     document.getElementById('teacherName').textContent = getUserName();
     document.getElementById('teacherAvatar').textContent = getUserInitials();
+
+    let currentQuestionIndex = 0;
+
+    // Questionnaire Navigation Functions
+    function nextQuestion() {
+      if (currentQuestionIndex === 0) {
+        const title = document.getElementById('q-title').value.trim();
+        const description = document.getElementById('q-description').value.trim();
+        if (!title) {
+          alert('Please enter a course title');
+          return;
+        }
+        if (!description) {
+          alert('Please enter a course description');
+          return;
+        }
+      } else if (currentQuestionIndex === 1) {
+        const category = document.getElementById('q-category').value;
+        const level = document.getElementById('q-level').value;
+        if (!category || !level) {
+          alert('Please select both category and level');
+          return;
+        }
+      }
+
+      document.getElementById(`question-${currentQuestionIndex + 1}`).style.display = 'none';
+      currentQuestionIndex++;
+      document.getElementById(`question-${currentQuestionIndex + 1}`).style.display = 'block';
+    }
+
+    function prevQuestion() {
+      document.getElementById(`question-${currentQuestionIndex + 1}`).style.display = 'none';
+      currentQuestionIndex--;
+      document.getElementById(`question-${currentQuestionIndex + 1}`).style.display = 'block';
+    }
+
+    function completeQuestionnaire() {
+      const duration = document.getElementById('q-duration').value.trim();
+      const maxStudents = document.getElementById('q-maxstudents').value.trim();
+      if (!duration) {
+        alert('Please enter course duration');
+        return;
+      }
+
+      // Populate the form with answers
+      document.getElementById('courseTitle').value = document.getElementById('q-title').value;
+      document.getElementById('courseDescription').value = document.getElementById('q-description').value;
+      document.getElementById('courseCategory').value = document.getElementById('q-category').value;
+      document.getElementById('courseLevel').value = document.getElementById('q-level').value;
+      document.getElementById('courseDuration').value = duration;
+      if (maxStudents) {
+        document.getElementById('maxStudents').value = maxStudents;
+      }
+
+      // Hide the modal
+      document.getElementById('questionnaire-modal').style.display = 'none';
+      currentQuestionIndex = 0;
+
+      // Update preview
+      updatePreview();
+      
+      // Scroll to form
+      setTimeout(() => {
+        document.querySelector('.form-section-title').scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    }
 
     let courses = JSON.parse(localStorage.getItem('teacherCourses')) || [];
     let modules = [];

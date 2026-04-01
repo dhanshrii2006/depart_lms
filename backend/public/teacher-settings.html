@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Acadify Teacher</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .settings-wrapper {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 2rem;
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .settings-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .settings-sidebar-item {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      border-left: 3px solid transparent;
+      background: #1a202c;
+      color: #a3aac4;
+      border: 1px solid #667eea;
+    }
+
+    .settings-sidebar-item:hover {
+      background: #0f1419;
+    }
+
+    .settings-sidebar-item.active {
+      background: #667eea;
+      border-left-color: white;
+      color: white;
+      font-weight: 600;
+    }
+
+    .settings-sidebar-item i {
+      margin-right: 0.75rem;
+      width: 20px;
+    }
+
+    .settings-content {
+      background: #1a202c;
+      border-radius: 1rem;
+      padding: 2rem;
+      border: 1px solid #667eea;
+    }
+
+    .settings-section {
+      display: none;
+    }
+
+    .settings-section.active {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .settings-section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      color: white;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #667eea;
+      border-radius: 0.5rem;
+      background: #0f1419;
+      color: white;
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: #764ba2;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .button-group button {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .btn-secondary {
+      background: #764ba2;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #6a4194;
+    }
+
+    .preference-item {
+      padding: 1rem;
+      background: #0f1419;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+
+    .preference-info h4 {
+      margin: 0 0 0.25rem 0;
+      color: white;
+    }
+
+    .preference-info p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #a3aac4;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #667eea;
+      transition: 0.4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .success-message {
+      background: #22863a;
+      color: white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .divider {
+      border-top: 1px solid #667eea;
+      margin: 2rem 0;
+    }
+
+    @media (max-width: 768px) {
+      .settings-wrapper {
+        grid-template-columns: 1fr;
+      }
+
+      .settings-sidebar {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="teacher-dashboard.html"><i class="fas fa-chalkboard-teacher mr-2"></i> Dashboard</a></li>
+        <li><a href="course-creation.html"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
+        <li><a href="teacher-my-courses.html"><i class="fas fa-folder-open mr-2"></i> My Courses</a></li>
+        <li><a href="teacher-calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
+        <li><a href="teacher-settings.html" class="active"><i class="fas fa-cog mr-2"></i> Settings</a></li>
+        <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-power-off mr-2"></i> Exit</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Settings</h1>
+        <div class="user-info">
+          <span id="userName"></span>
+          <div class="user-avatar" id="userAvatar">T</div>
+        </div>
+      </header>
+
+      <div class="settings-wrapper">
+        <div class="settings-sidebar">
+          <div class="settings-sidebar-item active" onclick="showSection('profile', event)">
+            <i class="fas fa-user"></i> Profile
+          </div>
+          <div class="settings-sidebar-item" onclick="showSection('notifications', event)">
+            <i class="fas fa-bell"></i> Notifications
+          </div>
+          <div class="settings-sidebar-item" onclick="showSection('preferences', event)">
+            <i class="fas fa-sliders-h"></i> Preferences
+          </div>
+          <div class="settings-sidebar-item" onclick="showSection('password', event)">
+            <i class="fas fa-lock"></i> Security
+          </div>
+        </div>
+
+        <div class="settings-content">
+          <div class="success-message" id="successMessage">
+            ✓ Changes saved successfully!
+          </div>
+
+          <!-- Profile Section -->
+          <div class="settings-section active" id="profile">
+            <div class="settings-section-title">
+              <i class="fas fa-user-circle"></i> Profile Settings
+            </div>
+
+            <form onsubmit="saveProfile(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">First Name</label>
+                  <input type="text" class="form-input" id="firstName" placeholder="Your first name">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Last Name</label>
+                  <input type="text" class="form-input" id="lastName" placeholder="Your last name">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-input" id="email" placeholder="your.email@example.com">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" class="form-input" id="phone" placeholder="+1 (555) 000-0000">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Specialization</label>
+                <select class="form-select" id="specialization">
+                  <option value="">Select specialization...</option>
+                  <option value="math">Mathematics</option>
+                  <option value="science">Science</option>
+                  <option value="english">English</option>
+                  <option value="history">History</option>
+                  <option value="languages">Languages</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Bio</label>
+                <textarea class="form-input" id="bio" placeholder="Tell about yourself..." rows="4"></textarea>
+              </div>
+
+              <div class="button-group">
+                <button type="submit" class="btn-primary">Save Profile</button>
+                <button type="button" class="btn-secondary" onclick="resetProfile()">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Notifications Section -->
+          <div class="settings-section" id="notifications">
+            <div class="settings-section-title">
+              <i class="fas fa-bell"></i> Notification Preferences
+            </div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h4>Email Notifications</h4>
+                <p>Receive updates via email</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked id="emailNotif" onchange="saveNotifications()">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h4>Student Messages</h4>
+                <p>Get notified when students message</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked id="studentMessages" onchange="saveNotifications()">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h4>Assignment Submissions</h4>
+                <p>Notify on student submissions</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked id="assignmentNotif" onchange="saveNotifications()">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h4>Weekly Digest</h4>
+                <p>Weekly course activity summary</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked id="digestNotif" onchange="saveNotifications()">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Preferences Section -->
+          <div class="settings-section" id="preferences">
+            <div class="settings-section-title">
+              <i class="fas fa-sliders-h"></i> Display Preferences
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Theme</label>
+              <select class="form-select" id="theme" onchange="savePreferences()">
+                <option value="dark">Dark Mode</option>
+                <option value="light">Light Mode</option>
+                <option value="auto">Auto</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Language</label>
+              <select class="form-select" id="language" onchange="savePreferences()">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="pt">Português</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Items Per Page</label>
+              <select class="form-select" id="itemsPerPage" onchange="savePreferences()">
+                <option value="10">10 items</option>
+                <option value="25" selected>25 items</option>
+                <option value="50">50 items</option>
+              </select>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h4>Compact View</h4>
+                <p>Show less whitespace</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="compactView" onchange="savePreferences()">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Security Section -->
+          <div class="settings-section" id="password">
+            <div class="settings-section-title">
+              <i class="fas fa-lock"></i> Security Settings
+            </div>
+
+            <h4 style="color: white; margin-top: 0;">Change Password</h4>
+
+            <form onsubmit="changePassword(event)">
+              <div class="form-group">
+                <label class="form-label">Current Password</label>
+                <input type="password" class="form-input" id="currentPassword" placeholder="Enter current password" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" class="form-input" id="newPassword" placeholder="Enter new password" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm new password" required>
+              </div>
+
+              <div class="button-group">
+                <button type="submit" class="btn-primary">Update Password</button>
+                <button type="button" class="btn-secondary" onclick="document.getElementById('currentPassword').value = ''; document.getElementById('newPassword').value = ''; document.getElementById('confirmPassword').value = '';">Clear</button>
+              </div>
+            </form>
+
+            <div class="divider"></div>
+
+            <h4 style="color: white;">Two-Factor Authentication</h4>
+            <div class="preference-item">
+              <div class="preference-info">
+                <h4>Enable 2FA</h4>
+                <p>Add extra security layer</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="twoFactor">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    checkAuth('teacher');
+
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
+    function showSection(sectionId, event) {
+      if (event) event.preventDefault();
+      
+      document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.settings-sidebar-item').forEach(i => i.classList.remove('active'));
+
+      document.getElementById(sectionId).classList.add('active');
+      event.target.closest('.settings-sidebar-item').classList.add('active');
+    }
+
+    function showSuccessMessage() {
+      const msg = document.getElementById('successMessage');
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 3000);
+    }
+
+    function saveProfile(e) {
+      e.preventDefault();
+      const profile = {
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        specialization: document.getElementById('specialization').value,
+        bio: document.getElementById('bio').value
+      };
+      localStorage.setItem('teacherProfile', JSON.stringify(profile));
+      showSuccessMessage();
+    }
+
+    function resetProfile() {
+      const profile = JSON.parse(localStorage.getItem('teacherProfile') || '{}');
+      document.getElementById('firstName').value = profile.firstName || '';
+      document.getElementById('lastName').value = profile.lastName || '';
+      document.getElementById('email').value = profile.email || '';
+      document.getElementById('phone').value = profile.phone || '';
+      document.getElementById('specialization').value = profile.specialization || '';
+      document.getElementById('bio').value = profile.bio || '';
+    }
+
+    function saveNotifications() {
+      const notifications = {
+        email: document.getElementById('emailNotif').checked,
+        studentMessages: document.getElementById('studentMessages').checked,
+        assignments: document.getElementById('assignmentNotif').checked,
+        digest: document.getElementById('digestNotif').checked
+      };
+      localStorage.setItem('teacherNotifications', JSON.stringify(notifications));
+      showSuccessMessage();
+    }
+
+    function savePreferences() {
+      const preferences = {
+        theme: document.getElementById('theme').value,
+        language: document.getElementById('language').value,
+        itemsPerPage: document.getElementById('itemsPerPage').value,
+        compactView: document.getElementById('compactView').checked
+      };
+      localStorage.setItem('teacherPreferences', JSON.stringify(preferences));
+      showSuccessMessage();
+    }
+
+    function changePassword(e) {
+      e.preventDefault();
+      const newPass = document.getElementById('newPassword').value;
+      const confirmPass = document.getElementById('confirmPassword').value;
+
+      if (newPass !== confirmPass) {
+        alert('Passwords do not match!');
+        return;
+      }
+
+      if (newPass.length < 6) {
+        alert('Password must be at least 6 characters long!');
+        return;
+      }
+
+      showSuccessMessage();
+      document.getElementById('currentPassword').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmPassword').value = '';
+    }
+
+    // Load saved data on page load
+    window.onload = () => {
+      resetProfile();
+      const notifications = JSON.parse(localStorage.getItem('teacherNotifications') || '{}');
+      if (notifications.email !== undefined) document.getElementById('emailNotif').checked = notifications.email;
+      if (notifications.studentMessages !== undefined) document.getElementById('studentMessages').checked = notifications.studentMessages;
+      if (notifications.assignments !== undefined) document.getElementById('assignmentNotif').checked = notifications.assignments;
+      if (notifications.digest !== undefined) document.getElementById('digestNotif').checked = notifications.digest;
+
+      const preferences = JSON.parse(localStorage.getItem('teacherPreferences') || '{}');
+      if (preferences.theme) document.getElementById('theme').value = preferences.theme;
+      if (preferences.language) document.getElementById('language').value = preferences.language;
+      if (preferences.itemsPerPage) document.getElementById('itemsPerPage').value = preferences.itemsPerPage;
+      if (preferences.compactView) document.getElementById('compactView').checked = preferences.compactView;
+    };
+  </script>
+</body>
+</html>

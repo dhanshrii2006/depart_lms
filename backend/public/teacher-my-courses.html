@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Courses - Teacher | Acadify</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify Teacher</div>
+      <ul class="sidebar-menu">
+        <li><a href="teacher-dashboard.html"><i class="fas fa-chalkboard-teacher mr-2"></i> Dashboard</a></li>
+        <li><a href="course-creation.html"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
+        <li><a href="teacher-my-courses.html" class="active"><i class="fas fa-folder-open mr-2"></i> My Courses</a></li>
+        <li><a href="assessment.html"><i class="fas fa-quiz mr-2"></i> Assessments</a></li>
+        <li><a href="teacher-calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
+        <li><a href="#" onclick="logout(); return false;"><i class="fas fa-power-off mr-2"></i> Exit</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>My Courses</h1>
+        <div class="user-info">
+          <span id="teacherName">Teacher</span>
+          <div class="user-avatar" id="teacherAvatar">T</div>
+        </div>
+      </header>
+
+      <div class="welcome-banner">
+        <h2>Course Management Hub</h2>
+        <p class="opacity-60">View and manage all courses you've created. Monitor student progress and course performance.</p>
+      </div>
+
+      <div class="grid grid-4 mb-4">
+        <div class="card stat-card">
+          <div class="stat-value" id="totalCourses">0</div>
+          <div class="stat-label">Total Courses</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value" id="totalStudents">0</div>
+          <div class="stat-label">Total Students</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value" id="completionRate">0%</div>
+          <div class="stat-label">Avg Completion</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value" id="publishedCourses">0</div>
+          <div class="stat-label">Published</div>
+        </div>
+      </div>
+
+      <div class="content" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Filter & Search -->
+        <div class="card" style="display: flex; gap: 1rem; align-items: center;">
+          <input type="text" id="searchInput" placeholder="🔍 Search courses..." 
+            style="flex: 1; padding: 0.75rem 1rem; background: #0f1419; border: 1px solid #667eea; border-radius: 0.5rem; color: white;">
+          <select id="filterStatus" style="padding: 0.75rem 1rem; background: #0f1419; border: 1px solid #667eea; border-radius: 0.5rem; color: white; cursor: pointer;">
+            <option value="">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+          </select>
+        </div>
+
+        <!-- Courses List -->
+        <div id="coursesList"></div>
+      </div>
+
+      <!-- Course Details Modal -->
+      <div id="courseModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; padding: 2rem 0;">
+        <div style="background: #1a202c; border-radius: 1rem; max-width: 700px; width: 90%; padding: 2rem; border: 1px solid #667eea;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 id="modalTitle" style="color: white; margin: 0;">Course Details</h2>
+            <button onclick="closeCourseModal()" style="background: none; border: none; color: #a3aac4; font-size: 1.5rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+          </div>
+
+          <div id="modalContent" style="color: #a3aac4;">
+            <!-- Content will be populated dynamically -->
+          </div>
+
+          <div style="display: flex; gap: 1rem; margin-top: 2rem; border-top: 1px solid #667eea; padding-top: 1.5rem;">
+            <button onclick="editCourse()" style="flex: 1; padding: 0.75rem; background: #667eea; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600;"><i class="fas fa-edit mr-2"></i> Edit</button>
+            <button onclick="deleteCourse()" style="flex: 1; padding: 0.75rem; background: #e53e3e; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600;"><i class="fas fa-trash mr-2"></i> Delete</button>
+            <button onclick="closeCourseModal()" style="flex: 1; padding: 0.75rem; background: #764ba2; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">Close</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <style>
+    .mr-2 { margin-right: 0.5rem; }
+    .font-weight-600 { font-weight: 600; }
+    .text-small { font-size: 0.85rem; }
+    .opacity-60 { opacity: 0.6; }
+
+    .course-grid-item {
+      background: #1a202c;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      border: 1px solid #667eea;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .course-grid-item:hover {
+      border-color: #764ba2;
+      background: #15192e;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+    }
+
+    .course-title {
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .course-description {
+      color: #a3aac4;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex-grow: 1;
+    }
+
+    .course-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-number {
+      color: #667eea;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      color: #a3aac4;
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+    }
+
+    .course-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #a3aac4;
+      font-size: 0.85rem;
+    }
+
+    .badge {
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.3rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-draft {
+      background: #764ba2;
+      color: white;
+    }
+
+    .badge-published {
+      background: #22863a;
+      color: white;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #a3aac4;
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      color: #667eea;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .grid-courses {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+  </style>
+
+  <script src="auth.js"></script>
+  <script>
+    checkAuth('teacher');
+
+    document.getElementById('teacherName').textContent = getUserName();
+    document.getElementById('teacherAvatar').textContent = getUserInitials();
+
+    let allCourses = [];
+    let currentCourseId = null;
+
+    async function loadCourses() {
+      try {
+        // Load teacher's courses from localStorage (or API in production)
+        const courses = JSON.parse(localStorage.getItem('teacherCourses')) || [];
+        allCourses = courses;
+
+        updateStats();
+        renderCourses(courses);
+      } catch (error) {
+        console.error('Error loading courses:', error);
+        document.getElementById('coursesList').innerHTML = '<p class="text-muted">Error loading courses</p>';
+      }
+    }
+
+    function updateStats() {
+      const totalCourses = allCourses.length;
+      const publishedCourses = allCourses.filter(c => c.status === 'published').length;
+      
+      let totalStudents = 0;
+      let totalCompleted = 0;
+      
+      allCourses.forEach(course => {
+        const enrolled = (course.studentsEnrolled || []).length;
+        const completed = (course.studentsCompleted || []).length;
+        totalStudents += enrolled;
+        totalCompleted += completed;
+      });
+
+      const avgCompletion = totalStudents > 0 ? Math.round((totalCompleted / totalStudents) * 100) : 0;
+
+      document.getElementById('totalCourses').textContent = totalCourses;
+      document.getElementById('totalStudents').textContent = totalStudents;
+      document.getElementById('completionRate').textContent = avgCompletion + '%';
+      document.getElementById('publishedCourses').textContent = publishedCourses;
+    }
+
+    function renderCourses(courses) {
+      const coursesList = document.getElementById('coursesList');
+
+      if (courses.length === 0) {
+        coursesList.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-book-open"></i>
+            <h3 style="color: white; margin-bottom: 0.5rem;">No Courses Yet</h3>
+            <p>Start creating your first course to get started.</p>
+            <a href="course-creation.html" style="display: inline-block; margin-top: 1rem; padding: 0.75rem 1.5rem; background: #667eea; color: white; text-decoration: none; border-radius: 0.5rem; font-weight: 600;">Create Course</a>
+          </div>
+        `;
+        return;
+      }
+
+      const coursesGrid = `<div class="grid-courses">${courses.map(course => {
+        const enrolled = (course.studentsEnrolled || []).length;
+        const completed = (course.studentsCompleted || []).length;
+        const completionPct = enrolled > 0 ? Math.round((completed / enrolled) * 100) : 0;
+        const modules = (course.modules || []).length;
+
+        return `
+          <div class="course-grid-item" onclick="openCourseModal('${course.id}')">
+            <div class="course-title">${course.title || 'Untitled Course'}</div>
+            <div class="course-description">${course.description || 'No description provided'}</div>
+            
+            <div class="course-stats">
+              <div class="stat-box">
+                <div class="stat-number">${enrolled}</div>
+                <div class="stat-label">Students Enrolled</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-number">${completed}</div>
+                <div class="stat-label">Completed</div>
+              </div>
+            </div>
+
+            <div class="course-meta">
+              <span><i class="fas fa-book mr-2" style="color: #667eea;"></i>${modules} modules</span>
+              <span class="badge ${course.status === 'published' ? 'badge-published' : 'badge-draft'}">
+                ${course.status === 'published' ? '✓ Published' : '○ Draft'}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('')}</div>`;
+
+      coursesList.innerHTML = coursesGrid;
+    }
+
+    function openCourseModal(courseId) {
+      currentCourseId = courseId;
+      const course = allCourses.find(c => c.id == courseId);
+
+      if (!course) return;
+
+      const enrolled = (course.studentsEnrolled || []).length;
+      const completed = (course.studentsCompleted || []).length;
+      const completionPct = enrolled > 0 ? Math.round((completed / enrolled) * 100) : 0;
+      const modules = (course.modules || []).length;
+      const outcomes = (course.learningOutcomes || '').split('\n').filter(o => o.trim());
+
+      document.getElementById('modalTitle').textContent = course.title || 'Course Details';
+
+      const modalContent = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #667eea;">
+          <div>
+            <div style="color: #a3aac4; font-size: 0.85rem; margin-bottom: 0.5rem;">Students Enrolled</div>
+            <div style="color: #667eea; font-size: 1.8rem; font-weight: 700;">${enrolled}</div>
+          </div>
+          <div>
+            <div style="color: #a3aac4; font-size: 0.85rem; margin-bottom: 0.5rem;">Completion Rate</div>
+            <div style="color: #667eea; font-size: 1.8rem; font-weight: 700;">${completionPct}%</div>
+          </div>
+          <div>
+            <div style="color: #a3aac4; font-size: 0.85rem; margin-bottom: 0.5rem;">Students Completed</div>
+            <div style="color: #667eea; font-size: 1.8rem; font-weight: 700;">${completed}</div>
+          </div>
+          <div>
+            <div style="color: #a3aac4; font-size: 0.85rem; margin-bottom: 0.5rem;">Modules</div>
+            <div style="color: #667eea; font-size: 1.8rem; font-weight: 700;">${modules}</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <h4 style="color: white; margin-bottom: 0.75rem;">Description</h4>
+          <p style="margin: 0;">${course.description || 'No description'}</p>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <h4 style="color: white; margin-bottom: 0.75rem;">Course Details</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <span style="color: #a3aac4; font-size: 0.85rem;">Category:</span>
+              <p style="margin: 0.25rem 0 0 0; color: white;">${course.category || 'N/A'}</p>
+            </div>
+            <div>
+              <span style="color: #a3aac4; font-size: 0.85rem;">Level:</span>
+              <p style="margin: 0.25rem 0 0 0; color: white;">${course.level || 'N/A'}</p>
+            </div>
+            <div>
+              <span style="color: #a3aac4; font-size: 0.85rem;">Duration:</span>
+              <p style="margin: 0.25rem 0 0 0; color: white;">${course.duration || 'N/A'} hours</p>
+            </div>
+            <div>
+              <span style="color: #a3aac4; font-size: 0.85rem;">Status:</span>
+              <p style="margin: 0.25rem 0 0 0; color: white;">${course.status === 'published' ? '✓ Published' : '○ Draft'}</p>
+            </div>
+          </div>
+        </div>
+
+        ${outcomes.length > 0 ? `
+          <div>
+            <h4 style="color: white; margin-bottom: 0.75rem;">Learning Outcomes</h4>
+            <ul style="margin: 0; padding-left: 1.5rem; color: #a3aac4;">
+              ${outcomes.map(o => `<li>${o}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+      `;
+
+      document.getElementById('modalContent').innerHTML = modalContent;
+      document.getElementById('courseModal').style.display = 'flex';
+    }
+
+    function closeCourseModal() {
+      document.getElementById('courseModal').style.display = 'none';
+      currentCourseId = null;
+    }
+
+    function editCourse() {
+      if (!currentCourseId) return;
+      // In production, would navigate to edit page with course ID
+      alert('Edit functionality would navigate to course editor with course ID: ' + currentCourseId);
+    }
+
+    function deleteCourse() {
+      if (!currentCourseId || !confirm('Are you sure you want to delete this course?')) return;
+
+      allCourses = allCourses.filter(c => c.id != currentCourseId);
+      localStorage.setItem('teacherCourses', JSON.stringify(allCourses));
+
+      closeCourseModal();
+      loadCourses();
+      alert('Course deleted successfully');
+    }
+
+    // Search and Filter
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = allCourses.filter(c => 
+        c.title.toLowerCase().includes(query) || 
+        c.description.toLowerCase().includes(query)
+      );
+      renderCourses(applyFilter(filtered));
+    });
+
+    document.getElementById('filterStatus').addEventListener('change', (e) => {
+      const status = e.target.value;
+      const filtered = status ? allCourses.filter(c => c.status === status) : allCourses;
+      renderCourses(filtered);
+    });
+
+    function applyFilter(courses) {
+      const status = document.getElementById('filterStatus').value;
+      return status ? courses.filter(c => c.status === status) : courses;
+    }
+
+    loadCourses();
+  </script>
+</body>
+</html>
