@@ -3,126 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Dashboard - Acadify</title>
+  <title>Student Dashboard | Acadify</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="layout">
     <aside class="sidebar">
-      <div class="sidebar-logo">📚 Acadify</div>
+      <div class="sidebar-logo">Acadify</div>
       <ul class="sidebar-menu">
-        <li><a href="student-dashboard.html" class="active">Dashboard</a></li>
-        <li><a href="my-courses.html">My Courses</a></li>
-        <li><a href="browse-courses.html">Browse Courses</a></li>
-        <li><a href="lesson.html">Lessons</a></li>
-        <li><a href="quiz.html">Quizzes</a></li>
-        <li><a href="#">Assignments</a></li>
-        <li><a href="progress.html">Progress</a></li>
-        <li><a href="#">Calendar</a></li>
-        <li><a href="settings.html">Settings</a></li>
-        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+        <li><a href="student-dashboard.html" class="active"><i class="fas fa-th-large mr-2"></i> Dashboard</a></li>
+        <li><a href="my-courses.html"><i class="fas fa-book mr-2"></i> My Library</a></li>
+        <li><a href="browse-courses.html"><i class="fas fa-search mr-2"></i> Explore</a></li>
+        <li><a href="progress.html"><i class="fas fa-chart-line mr-2"></i> Analytics</a></li>
+        <li><a href="calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
+        <li><a href="settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
+        <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt mr-2"></i> Exit</a></li>
       </ul>
     </aside>
 
     <main class="main-content">
       <header class="header">
-        <h1>Student Dashboard</h1>
+        <h1>Overview</h1>
         <div class="user-info">
-          <span id="userName">Student</span>
-          <div class="user-avatar" id="userAvatar">U</div>
+          <div class="user-avatar" id="userAvatar">S</div>
+          <span id="userName" class="text-small font-weight-600">Student</span>
         </div>
       </header>
 
-      <div class="content">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="value" id="inProgressCount">...</div>
-            <div class="label">Courses in Progress</div>
-          </div>
-          <div class="stat-card">
-            <div class="value" id="completedCount">...</div>
-            <div class="label">Completed</div>
-          </div>
-          <div class="stat-card">
-            <div class="value" id="dueCount">...</div>
-            <div class="label">Assignments Due</div>
-          </div>
-        </div>
+      <div class="welcome-banner">
+        <h2 id="welcomeMsg">Welcome back, Scholar</h2>
+        <p class="opacity-60">You have 3 assignments due this week. Let's maintain the momentum.</p>
+      </div>
 
-        <div class="chart-container">
-          <h3>Weekly Learning Hours</h3>
-          <div class="chart-wrapper">
+      <div class="grid grid-3 mb-4">
+        <div class="card stat-card">
+          <div class="stat-value">04</div>
+          <div class="stat-label">Active Courses</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value">12</div>
+          <div class="stat-label">Certificates</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value">88%</div>
+          <div class="stat-label">Avg. Score</div>
+        </div>
+      </div>
+
+      <div class="grid grid-2 mb-4">
+        <div class="card">
+          <h3 class="mb-3">Learning Velocity</h3>
+          <div style="height: 250px;">
             <canvas id="learningChart"></canvas>
           </div>
         </div>
-
-        <div class="chart-container">
-          <h3>Course Status</h3>
-          <div class="chart-wrapper">
+        <div class="card">
+          <h3 class="mb-3">Academic Distribution</h3>
+          <div style="height: 250px;">
             <canvas id="statusChart"></canvas>
           </div>
         </div>
+      </div>
 
-        <div class="activity-feed">
-          <h3>Recent Activity</h3>
-          <div class="activity-item">
-            <div class="activity-icon">📝</div>
-            <div class="activity-content">
-              <p>Completed Quiz - Advanced Programming</p>
-              <span class="activity-time">2 hours ago</span>
-            </div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-icon">✅</div>
-            <div class="activity-content">
-              <p>Finished Video - Database Design</p>
-              <span class="activity-time">4 hours ago</span>
-            </div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-icon">📌</div>
-            <div class="activity-content">
-              <p>New Assignment Posted - Web Development</p>
-              <span class="activity-time">1 day ago</span>
-            </div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-icon">💬</div>
-            <div class="activity-content">
-              <p>New Comment on Discussion - React Fundamentals</p>
-              <span class="activity-time">2 days ago</span>
-            </div>
-          </div>
-        </div>
-
-        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Continue Learning</h3>
-        <div class="courses-grid">
-          <div class="course-card">
-            <div class="course-header">
-              <h3>React Fundamentals</h3>
-            </div>
-            <div class="course-body">
-              <p>Learn the basics of React and build interactive UIs</p>
-              <div class="progress-bar">
-                <div class="progress-bar-fill" style="width: 65%;"></div>
+      <div class="mb-4">
+        <h3 class="mb-3">Continue Path</h3>
+        <div class="grid grid-2">
+          <div class="card course-card">
+            <div class="course-image"></div>
+            <div>
+              <span class="label-sm text-muted">Advanced Programming</span>
+              <h4 class="mt-1 mb-2">React Architecture Patterns</h4>
+              <div class="progress-container">
+                <div class="progress-bar" style="width: 65%;"></div>
               </div>
-              <p style="font-size: 0.85rem; color: #667eea; font-weight: 600;">65% Complete</p>
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Continue</button>
+              <div class="flex-row justify-between mb-3">
+                <span class="text-small opacity-60">65% Complete</span>
+              </div>
+              <button class="btn btn-primary btn-block" onclick="window.location.href='lesson.html'">Resume Session</button>
             </div>
           </div>
 
-          <div class="course-card">
-            <div class="course-header">
-              <h3>Web Development Basics</h3>
-            </div>
-            <div class="course-body">
-              <p>Master HTML, CSS, and JavaScript fundamentals</p>
-              <div class="progress-bar">
-                <div class="progress-bar-fill" style="width: 42%;"></div>
+          <div class="card course-card">
+            <div class="course-image"></div>
+            <div>
+              <span class="label-sm text-muted">Web Systems</span>
+              <h4 class="mt-1 mb-2">Fullstack Infrastructure</h4>
+              <div class="progress-container">
+                <div class="progress-bar" style="width: 42%;"></div>
               </div>
-              <p style="font-size: 0.85rem; color: #667eea; font-weight: 600;">42% Complete</p>
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Continue</button>
+              <div class="flex-row justify-between mb-3">
+                <span class="text-small opacity-60">42% Complete</span>
+              </div>
+              <button class="btn btn-primary btn-block" onclick="window.location.href='lesson.html'">Resume Session</button>
             </div>
           </div>
         </div>
@@ -130,91 +104,78 @@
     </main>
   </div>
 
+  <style>
+    .mr-2 { margin-right: 0.5rem; }
+    .font-weight-600 { font-weight: 600; }
+    .flex-row { display: flex; align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .btn-block { width: 100%; display: block; }
+  </style>
+
   <script src="auth.js"></script>
   <script src="api.js"></script>
   <script>
     checkAuth('student');
 
     // Update user info
-    document.getElementById('userName').textContent = getUserName();
+    const name = getUserName();
+    document.getElementById('userName').textContent = name;
     document.getElementById('userAvatar').textContent = getUserInitials();
+    document.getElementById('welcomeMsg').textContent = `Welcome back, ${name.split(' ')[0]}`;
 
-    // Load dashboard stats from API
-    async function loadDashboardStats() {
-      try {
-        const courses = await fetchWithAuth('/api/enrollments/my-courses');
-        
-        // Calculate stats
-        const inProgress = courses.filter(c => c.progress > 0 && c.progress < 100).length;
-        const completed = courses.filter(c => c.progress === 100).length;
-        const due = courses.filter(c => c.progress < 100).length;
-        
-        // Update DOM
-        document.getElementById('inProgressCount').textContent = inProgress;
-        document.getElementById('completedCount').textContent = completed;
-        document.getElementById('dueCount').textContent = due;
-      } catch (error) {
-        console.error('Error loading dashboard stats:', error);
-        // Show 0 on error
-        document.getElementById('inProgressCount').textContent = '0';
-        document.getElementById('completedCount').textContent = '0';
-        document.getElementById('dueCount').textContent = '0';
-      }
-    }
+    // Chart.js Global Config for Dark Mode
+    Chart.defaults.color = '#a3aac4';
+    Chart.defaults.borderColor = 'rgba(163, 166, 255, 0.1)';
 
-    loadDashboardStats();
-
-    // Weekly Learning Hours Chart
+    // Learning Velocity Chart
     const learningCtx = document.getElementById('learningChart').getContext('2d');
     new Chart(learningCtx, {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [{
-          label: 'Hours',
           data: [3, 5, 2, 6, 4, 1, 7],
-          backgroundColor: 'rgba(102, 126, 234, 0.7)',
-          borderColor: '#667eea',
-          borderWidth: 2,
-          borderRadius: 8
+          borderColor: '#a3a6ff',
+          backgroundColor: 'rgba(163, 166, 255, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#6063ee'
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
+        plugins: { legend: { display: false } },
         scales: {
-          y: { beginAtZero: true }
+          y: { grid: { borderDash: [5, 5] }, beginAtZero: true }
         }
       }
     });
 
-    // Course Status Chart
+    // Academic Distribution Chart
     const statusCtx = document.getElementById('statusChart').getContext('2d');
     new Chart(statusCtx, {
       type: 'doughnut',
       data: {
-        labels: ['In Progress', 'Completed', 'Not Started'],
+        labels: ['Theory', 'Practice', 'Research'],
         datasets: [{
-          data: [4, 12, 3],
+          data: [12, 8, 5],
           backgroundColor: [
-            '#667eea',
-            '#764ba2',
-            '#f0f0f0'
+            '#a3a6ff',
+            '#6063ee',
+            '#192540'
           ],
-          borderColor: 'white',
-          borderWidth: 2
+          borderWidth: 0,
+          hoverOffset: 15
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        cutout: '70%',
         plugins: {
-          legend: {
-            position: 'bottom'
-          }
+          legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
         }
       }
     });

@@ -1,65 +1,98 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Browse Courses - Acadify</title>
+  <title>Explore Courses | Acadify</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="layout">
-    <div class="sidebar">
-      <h2>Acadify</h2>
-      <ul>
-        <li onclick="window.location.href='student-dashboard.html'">Dashboard</li>
-        <li onclick="window.location.href='my-courses.html'">My Courses</li>
-        <li class="active">Browse Courses</li>
-        <li onclick="window.location.href='lesson.html'">Lessons</li>
-        <li onclick="window.location.href='quiz.html'">Quizzes</li>
-        <li onclick="window.location.href='progress.html'">Progress</li>
-        <li onclick="window.location.href='settings.html'">Settings</li>
-        <li onclick="logout()">Logout</li>
+    <aside class="sidebar">
+      <div class="sidebar-logo">Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="student-dashboard.html"><i class="fas fa-th-large mr-2"></i> Dashboard</a></li>
+        <li><a href="my-courses.html"><i class="fas fa-book mr-2"></i> My Library</a></li>
+        <li><a href="browse-courses.html" class="active"><i class="fas fa-search mr-2"></i> Explore</a></li>
+        <li><a href="progress.html"><i class="fas fa-chart-line mr-2"></i> Analytics</a></li>
+        <li><a href="settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
+        <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt mr-2"></i> Exit</a></li>
       </ul>
-    </div>
-    <div class="main">
-      <div class="topbar">
-        <div class="topbar-left">
-          <span style="font-weight:600; color:#667eea;">Browse Courses</span>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Explore</h1>
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">S</div>
+          <span id="userName" class="text-small font-weight-600">Student</span>
         </div>
-        <div class="topbar-right">
-          <div class="profile">
-            <div class="profile-avatar" id="userInitials">ST</div>
-            <span id="userName">Student</span>
+      </header>
+
+      <div class="welcome-banner">
+        <h2>Global Curriculum</h2>
+        <p class="opacity-60">Handpicked courses from industry experts. Use your institution's invite code to unlock premium modules.</p>
+      </div>
+
+      <div class="mb-4">
+        <div class="flex-row justify-between mb-3">
+          <h3>Available Modules</h3>
+          <div class="flex-row gap-2">
+            <span class="label-sm text-muted">Filter by Status:</span>
+            <select class="text-small" style="background: var(--surface-high); border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; color: var(--on-surface);">
+              <option>All Categories</option>
+              <option>Advanced Programming</option>
+              <option>Web Systems</option>
+            </select>
           </div>
         </div>
-      </div>
-      <div class="page-container">
-        <div class="welcome-banner">
-          <h2>Browse Courses</h2>
-          <p>Explore available courses and enroll using invite codes</p>
+        
+        <div id="coursesGrid" class="grid grid-3">
+          <!-- Courses injected here -->
         </div>
-        <div id="coursesGrid" class="courses-grid"></div>
       </div>
-    </div>
+    </main>
   </div>
+
+  <style>
+    .mr-2 { margin-right: 0.5rem; }
+    .font-weight-600 { font-weight: 600; }
+    .flex-row { display: flex; align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-2 { gap: 1rem; }
+    .btn-block { width: 100%; display: block; }
+    
+    .course-card .course-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+    
+    .course-card .rating {
+      color: var(--tertiary);
+      font-weight: 600;
+    }
+  </style>
 
   <script src="auth.js"></script>
   <script src="api.js"></script>
   <script>
     checkAuth('student');
 
-    var userName = localStorage.getItem('userName') || 'Student';
-    var userInitials = localStorage.getItem('userInitials') || 'ST';
-    document.getElementById('userName').textContent = userName;
-    document.getElementById('userInitials').textContent = userInitials;
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
 
     var mockCourses = [
-      { id: 1, title: 'React Advanced', teacher_name: 'Sarah Johnson', rating: '4.8', students: '2.3k', category: 'Frontend' },
-      { id: 2, title: 'Node.js API Development', teacher_name: 'Alex Rodriguez', rating: '4.7', students: '1.8k', category: 'Backend' },
-      { id: 3, title: 'Python for Data Science', teacher_name: 'Lisa Zhang', rating: '4.9', students: '5.1k', category: 'Data Science' },
-      { id: 4, title: 'TypeScript Mastery', teacher_name: 'David Martinez', rating: '4.6', students: '1.2k', category: 'Frontend' },
-      { id: 5, title: 'AWS Cloud Essentials', teacher_name: 'Nathan Brown', rating: '4.8', students: '3.4k', category: 'Cloud' },
-      { id: 6, title: 'UI/UX Design Fundamentals', teacher_name: 'Emma Wilson', rating: '4.9', students: '2.7k', category: 'Design' }
+      { id: 1, title: 'React Architecture Patterns', teacher_name: 'Sarah Johnson', rating: '4.8', students: '2.3k', category: 'Advanced Programming' },
+      { id: 2, title: 'Node.js Systems Design', teacher_name: 'Alex Rodriguez', rating: '4.7', students: '1.8k', category: 'Web Systems' },
+      { id: 3, title: 'Applied Data Science', teacher_name: 'Lisa Zhang', rating: '4.9', students: '5.1k', category: 'Analytics' },
+      { id: 4, title: 'TypeScript for Scale', teacher_name: 'David Martinez', rating: '4.6', students: '1.2k', category: 'Frontend' },
+      { id: 5, title: 'Cloud Infrastructure', teacher_name: 'Nathan Brown', rating: '4.8', students: '3.4k', category: 'DevOps' },
+      { id: 6, title: 'Design Systems Theory', teacher_name: 'Emma Wilson', rating: '4.9', students: '2.7k', category: 'Design' }
     ];
 
     function renderCourses(courses) {
@@ -68,52 +101,34 @@
       for (var i = 0; i < courses.length; i++) {
         var course = courses[i];
         var card = document.createElement('div');
-        card.className = 'course-card';
-        card.innerHTML =
-          '<div class="course-card-header">' + course.category + '</div>' +
-          '<div class="course-card-body">' +
-            '<h3>' + course.title + '</h3>' +
-            '<p>by ' + course.teacher_name + '</p>' +
-            '<p style="font-size:12px;color:#f59e0b;margin:8px 0;">★ ' + course.rating + ' • ' + course.students + ' students</p>' +
-            '<button class="btn btn-primary btn-small btn-block" onclick="enrollCourse(' + "'" + course.title + "'" + ')">Enroll Now</button>' +
-          '</div>';
+        card.className = 'card course-card';
+        card.innerHTML = `
+          <div class="course-image"></div>
+          <div>
+            <span class="label-sm text-muted">${course.category}</span>
+            <h4 class="mt-1 mb-1">${course.title}</h4>
+            <p class="text-small opacity-60 mb-2">by ${course.teacher_name}</p>
+            <div class="course-meta">
+              <span class="rating"><i class="fas fa-star mr-1"></i> ${course.rating}</span>
+              <span><i class="fas fa-user-graduate mr-1"></i> ${course.students} Learners</span>
+            </div>
+            <button class="btn btn-primary btn-block mt-3" onclick="enrollCourse('${course.title}')">
+              Join Cohort
+            </button>
+          </div>
+        `;
         grid.appendChild(card);
       }
     }
 
     function enrollCourse(title) {
-      var code = prompt('Enter invite code for: ' + title);
-      if (!code) return;
-      fetch('http://localhost:5000/api/enrollments/join', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invite_code: code.trim().toUpperCase() })
-      })
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data.error) {
-          alert('Error: ' + data.error);
-        } else {
-          alert('Successfully enrolled in ' + title + '!');
-        }
-      })
-      .catch(function(err) {
-        alert('Error: ' + err.message);
-      });
+       var code = prompt('Enter enrollment key for: ' + title);
+       if (!code) return;
+       // Mock UI interaction
+       alert('Enrolling in ' + title + '...');
     }
 
-    fetch('http://localhost:5000/api/courses/public', {
-      credentials: 'include'
-    })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.courses && data.courses.length > 0) {
-        renderCourses(data.courses);
-      } else {
-        renderCourses(mockCourses);
-      }
-    })
-    .catch(function() {
-      renderCourses(mockCourses);
-    });
+    renderCourses(mockCourses);
+  </script>
+</body>
+</html>

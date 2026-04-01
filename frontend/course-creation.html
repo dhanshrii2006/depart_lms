@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Course - Acadify Teacher</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .course-creation-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .creation-grid {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .creation-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .course-form-section {
+      background: #1a202c;
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #667eea;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      color: white;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: #0f1419;
+      border: 1px solid #667eea;
+      border-radius: 0.5rem;
+      color: white;
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      outline: none;
+      border-color: #764ba2;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .modules-section {
+      background: #1a202c;
+      border-radius: 1rem;
+      padding: 2rem;
+    }
+
+    .module-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .module-item {
+      background: #0f1419;
+      padding: 1.25rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .module-item:hover {
+      border-color: #667eea;
+      background: #15192e;
+    }
+
+    .module-item.selected {
+      border-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .module-info h4 {
+      margin: 0 0 0.25rem 0;
+      color: white;
+      font-weight: 600;
+    }
+
+    .module-info p {
+      margin: 0;
+      color: #a3aac4;
+      font-size: 0.85rem;
+    }
+
+    .module-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      padding: 0.5rem 0.75rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .icon-btn:hover {
+      background: #5568d3;
+    }
+
+    .icon-btn.delete {
+      background: #e53e3e;
+    }
+
+    .icon-btn.delete:hover {
+      background: #c53030;
+    }
+
+    .add-module-btn {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .add-module-btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+
+    .module-editor {
+      background: #0f1419;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      border: 2px solid #667eea;
+    }
+
+    .module-editor-title {
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .editor-field {
+      margin-bottom: 1rem;
+    }
+
+    .editor-field label {
+      display: block;
+      color: white;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .editor-field input, .editor-field textarea {
+      width: 100%;
+      padding: 0.6rem;
+      background: #15192e;
+      border: 1px solid #667eea;
+      border-radius: 0.4rem;
+      color: white;
+      font-family: inherit;
+    }
+
+    .lesson-input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .lesson-input-group input {
+      flex: 1;
+    }
+
+    .add-lesson-btn {
+      padding: 0.6rem 1rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .lesson-list {
+      margin-bottom: 1rem;
+    }
+
+    .lesson-item {
+      background: #15192e;
+      padding: 0.75rem;
+      border-radius: 0.4rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .lesson-item button {
+      padding: 0.3rem 0.6rem;
+      background: #e53e3e;
+      color: white;
+      border: none;
+      border-radius: 0.3rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary-large, .btn-secondary-large {
+      flex: 1;
+      min-width: 150px;
+      padding: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary-large {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary-large:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary-large {
+      background: #764ba2;
+      color: white;
+    }
+
+    .btn-secondary-large:hover {
+      background: #6a4194;
+      transform: translateY(-2px);
+    }
+
+    .sidebar-creation {
+      background: #1a202c;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      height: fit-content;
+      top: 2rem;
+      position: sticky;
+    }
+
+    .sidebar-section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 1rem;
+    }
+
+    .course-preview {
+      background: #0f1419;
+      padding: 1.25rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .preview-stat {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .preview-label {
+      color: #a3aac4;
+    }
+
+    .preview-value {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .success-message {
+      background: #22863a;
+      border: 1px solid #28a745;
+      color: #fff;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .success-message.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .video-item {
+      background: #15192e;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .video-item-info {
+      flex: 1;
+    }
+
+    .video-item-name {
+      color: white;
+      font-weight: 500;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .video-item-details {
+      color: #a3aac4;
+      font-size: 0.8rem;
+    }
+
+    .video-item-preview {
+      width: 80px;
+      height: 45px;
+      background: #0f1419;
+      border-radius: 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #667eea;
+      font-size: 1.2rem;
+    }
+
+    #videoUpload {
+      font-size: 0.9rem;
+    }
+
+    #videoUpload::file-selector-button {
+      padding: 0.5rem 0.75rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 0.3rem;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+
+    #videoUpload::file-selector-button:hover {
+      background: #5568d3;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify Teacher</div>
+      <ul class="sidebar-menu">
+        <li><a href="teacher-dashboard.html"><i class="fas fa-chalkboard-teacher mr-2"></i> Dashboard</a></li>
+        <li><a href="course-creation.html" class="active"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
+        <li><a href="my-courses.html"><i class="fas fa-folder-open mr-2"></i> My Courses</a></li>
+        <li><a href="#"><i class="fas fa-users mr-2"></i> Cohorts</a></li>
+        <li><a href="assessment.html"><i class="fas fa-quiz mr-2"></i> Assessments</a></li>
+        <li><a href="calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
+        <li><a href="settings.html"><i class="fas fa-cog mr-2"></i> Preferences</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Create New Course</h1>
+        <div class="user-info">
+          <span id="teacherName">Teacher</span>
+          <div class="user-avatar" id="teacherAvatar">T</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="course-creation-container">
+          <div class="success-message" id="successMessage">
+            ✓ Course saved successfully! You can continue editing or publish when ready.
+          </div>
+
+          <div class="creation-grid">
+            <div>
+              <!-- Course Information -->
+              <div class="course-form-section">
+                <h2 class="form-section-title">📖 Course Information</h2>
+                
+                <div class="form-group">
+                  <label class="form-label">Course Title *</label>
+                  <input type="text" class="form-input" id="courseTitle" placeholder="e.g., Advanced React Architecture">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Course Description *</label>
+                  <textarea class="form-textarea" id="courseDescription" placeholder="Describe what students will learn..."></textarea>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" id="courseCategory">
+                      <option value="">Select Category</option>
+                      <option value="programming">Programming</option>
+                      <option value="design">Design</option>
+                      <option value="business">Business</option>
+                      <option value="data">Data Science</option>
+                      <option value="mobile">Mobile Development</option>
+                      <option value="devops">DevOps</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Level</label>
+                    <select class="form-select" id="courseLevel">
+                      <option value="">Select Level</option>
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                      <option value="expert">Expert</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Duration (Hours)</label>
+                    <input type="number" class="form-input" id="courseDuration" placeholder="e.g., 40" min="1">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Max Students (Optional)</label>
+                    <input type="number" class="form-input" id="maxStudents" placeholder="Leave blank for unlimited">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Learning Outcomes (One per line)</label>
+                  <textarea class="form-textarea" id="learningOutcomes" placeholder="• Understand core concepts&#10;• Build real projects&#10;• Get certified"></textarea>
+                </div>
+              </div>
+
+              <!-- Modules Section -->
+              <div class="modules-section">
+                <h2 class="form-section-title">📚 Course Modules</h2>
+                
+                <div class="module-list" id="modulesList"></div>
+
+                <button class="add-module-btn" onclick="addModule()">
+                  <i class="fas fa-plus"></i> Add Module
+                </button>
+
+                <!-- Module Editor -->
+                <div id="moduleEditor" class="module-editor" style="display: none;">
+                  <div class="module-editor-title">✏️ Edit Module</div>
+                  
+                  <div class="editor-field">
+                    <label>Module Title</label>
+                    <input type="text" id="moduleTitle" class="form-input" placeholder="e.g., Component Architecture">
+                  </div>
+
+                  <div class="editor-field">
+                    <label>Module Description</label>
+                    <textarea id="moduleDescription" class="form-textarea" placeholder="What will students learn in this module?"></textarea>
+                  </div>
+
+                  <div class="editor-field">
+                    <label>Add Lessons with Video</label>
+                    <div class="lesson-input-group">
+                      <input type="text" id="lessonTitle" placeholder="Lesson title" class="form-input">
+                      <button class="add-lesson-btn" onclick="addLessonTitle()">Add</button>
+                    </div>
+                  </div>
+
+                  <div class="lesson-list" id="lessonsList"></div>
+
+                  <div class="editor-field" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(102, 126, 234, 0.2);">
+                    <label>Add Video to Lesson</label>
+                    <p style="color: #a3aac4; font-size: 0.8rem; margin-bottom: 0.75rem;">Select lesson and choose video source</p>
+                    
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                      <select id="lessonVideoSelect" class="form-input" style="margin: 0; flex: 1;">
+                        <option value="">Select lesson</option>
+                      </select>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                      <button class="add-lesson-btn" style="flex: 1; background: #667eea;" onclick="switchVideoSource('youtube')">
+                        <i class="fab fa-youtube"></i> YouTube
+                      </button>
+                      <button class="add-lesson-btn" style="flex: 1; background: #4285f4;" onclick="switchVideoSource('drive')">
+                        <i class="fab fa-google-drive"></i> Google Drive
+                      </button>
+                    </div>
+
+                    <div id="youtubeSection" style="display: none;">
+                      <input type="text" id="youtubeUrl" placeholder="https://youtube.com/watch?v=... or just Video ID" class="form-input" style="margin-bottom: 0.75rem;">
+                      <p style="color: #a3aac4; font-size: 0.75rem; margin-bottom: 0.75rem;">✓ Paste full YouTube URL or just the video ID</p>
+                      <button class="add-lesson-btn" style="width: 100%;" onclick="addVideoToLesson('youtube')">
+                        <i class="fas fa-plus"></i> Add YouTube Video
+                      </button>
+                    </div>
+
+                    <div id="driveSection" style="display: none;">
+                      <input type="text" id="driveUrl" placeholder="https://drive.google.com/file/d/... or just File ID" class="form-input" style="margin-bottom: 0.75rem;">
+                      <p style="color: #a3aac4; font-size: 0.75rem; margin-bottom: 0.75rem;">✓ Make sure file is "Anyone with link can view"</p>
+                      <button class="add-lesson-btn" style="width: 100%;" onclick="addVideoToLesson('drive')">
+                        <i class="fas fa-plus"></i> Add Google Drive Video
+                      </button>
+                    </div>
+                  </div>
+
+                  <div id="uploadedVideos" style="margin-top: 1rem;"></div>
+
+                  <div style="display: flex; gap: 0.5rem;">
+                    <button class="icon-btn" style="flex: 1;" onclick="saveModuleChanges()">
+                      <i class="fas fa-save"></i> Save Module
+                    </button>
+                    <button class="icon-btn delete" style="flex: 1;" onclick="closeModuleEditor()">
+                      <i class="fas fa-times"></i> Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="action-buttons">
+                <button class="btn-primary-large" onclick="saveCourse()">
+                  <i class="fas fa-save"></i> Save Draft
+                </button>
+                <button class="btn-secondary-large" onclick="publishCourse()">
+                  <i class="fas fa-rocket"></i> Publish Course
+                </button>
+              </div>
+            </div>
+
+            <!-- Sidebar Preview -->
+            <div class="sidebar-creation">
+              <div class="sidebar-section-title">👁️ Course Preview</div>
+              
+              <div class="course-preview">
+                <div class="preview-stat">
+                  <span class="preview-label">Title</span>
+                  <span class="preview-value" id="previewTitle">Untitled</span>
+                </div>
+                <div class="preview-stat">
+                  <span class="preview-label">Category</span>
+                  <span class="preview-value" id="previewCategory">N/A</span>
+                </div>
+                <div class="preview-stat">
+                  <span class="preview-label">Level</span>
+                  <span class="preview-value" id="previewLevel">N/A</span>
+                </div>
+                <div class="preview-stat">
+                  <span class="preview-label">Duration</span>
+                  <span class="preview-value" id="previewDuration">N/A</span>
+                </div>
+                <div class="preview-stat">
+                  <span class="preview-label">Modules</span>
+                  <span class="preview-value" id="previewModules">0</span>
+                </div>
+              </div>
+
+              <div class="sidebar-section-title">📋 Course Status</div>
+              <div class="course-preview">
+                <div class="preview-stat">
+                  <span class="preview-label">Status</span>
+                  <span class="preview-value" id="courseStatus">Draft</span>
+                </div>
+                <div class="preview-stat">
+                  <span class="preview-label">Progress</span>
+                  <span class="preview-value" id="courseProgress">0%</span>
+                </div>
+              </div>
+
+              <div class="sidebar-section-title">💡 Tips</div>
+              <div style="background: rgba(102, 126, 234, 0.1); border-left: 3px solid #667eea; padding: 1rem; border-radius: 0.4rem; font-size: 0.85rem; color: #a3aac4; line-height: 1.6;">
+                <p><strong>• Go Detailed</strong><br>Add comprehensive module descriptions for better SEO.</p>
+                <p style="margin-top: 0.75rem;"><strong>• Structure Matters</strong><br>Organize lessons logically within modules.</p>
+                <p style="margin-top: 0.75rem;"><strong>• Engage Learners</strong><br>Include learning outcomes and clear objectives.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    checkAuth('teacher');
+
+    document.getElementById('teacherName').textContent = getUserName();
+    document.getElementById('teacherAvatar').textContent = getUserInitials();
+
+    let courses = JSON.parse(localStorage.getItem('teacherCourses')) || [];
+    let modules = [];
+    let currentEditingModuleIndex = -1;
+    let currentCourseLessons = {};
+    let lessonVideos = {};
+    let currentVideoSource = 'youtube'; // Store lesson videos
+
+    function addModule() {
+      const newModule = {
+        id: Date.now(),
+        title: 'New Module',
+        description: '',
+        lessons: []
+      };
+      modules.push(newModule);
+      renderModules();
+      editModule(modules.length - 1);
+    }
+
+    function renderModules() {
+      const modulesList = document.getElementById('modulesList');
+      modulesList.innerHTML = modules.map((mod, idx) => `
+        <div class="module-item" onclick="editModule(${idx})">
+          <div class="module-info">
+            <h4>${mod.title}</h4>
+            <p>${mod.lessons.length} lessons</p>
+          </div>
+          <div class="module-actions">
+            <button class="icon-btn" onclick="event.stopPropagation(); editModule(${idx})">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="icon-btn delete" onclick="event.stopPropagation(); deleteModule(${idx})">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('previewModules').textContent = modules.length;
+    }
+
+    function editModule(index) {
+      currentEditingModuleIndex = index;
+      const module = modules[index];
+      
+      document.getElementById('moduleTitle').value = module.title;
+      document.getElementById('moduleDescription').value = module.description;
+      document.getElementById('moduleEditor').style.display = 'block';
+      
+      renderLessons(index);
+      renderLessonVideoSelect(index);
+    }
+
+    function renderLessons(moduleIndex) {
+      const lessonsList = document.getElementById('lessonsList');
+      const module = modules[moduleIndex];
+      
+      lessonsList.innerHTML = module.lessons.map((lesson, idx) => {
+        const videoKey = `${moduleIndex}-${idx}`;
+        const hasVideo = lessonVideos[videoKey];
+        
+        return `
+          <div class="lesson-item">
+            <span>
+              ${idx + 1}. ${lesson}
+              ${hasVideo ? '<span style="color: #667eea; margin-left: 0.5rem;"><i class="fas fa-video"></i> Video Uploaded</span>' : ''}
+            </span>
+            <button onclick="deleteLesson(${moduleIndex}, ${idx})">Remove</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderLessonVideoSelect(moduleIndex) {
+      const select = document.getElementById('lessonVideoSelect');
+      const module = modules[moduleIndex];
+      
+      select.innerHTML = '<option value="">Select lesson</option>' + 
+        module.lessons.map((lesson, idx) => `
+          <option value="${idx}">${idx + 1}. ${lesson}</option>
+        `).join('');
+    }
+
+    function addLessonTitle() {
+      const title = document.getElementById('lessonTitle').value.trim();
+      if (!title) {
+        alert('Please enter a lesson title');
+        return;
+      }
+      
+      modules[currentEditingModuleIndex].lessons.push(title);
+      document.getElementById('lessonTitle').value = '';
+      renderLessons(currentEditingModuleIndex);
+      renderLessonVideoSelect(currentEditingModuleIndex);
+    }
+
+    function deleteLesson(moduleIndex, lessonIndex) {
+      modules[moduleIndex].lessons.splice(lessonIndex, 1);
+      const videoKey = `${moduleIndex}-${lessonIndex}`;
+      delete lessonVideos[videoKey];
+      renderLessons(moduleIndex);
+      renderLessonVideoSelect(moduleIndex);
+    }
+
+    function uploadVideoForLesson() {
+      const fileInput = document.getElementById('videoUpload');
+      const lessonSelect = document.getElementById('lessonVideoSelect');
+      const selectedLessonIdx = lessonSelect.value;
+      
+      if (!selectedLessonIdx) {
+        alert('Please select a lesson');
+        return;
+      }
+      
+      if (!fileInput.files[0]) {
+        alert('Please select a video file');
+        return;
+      }
+      
+      const file = fileInput.files[0];
+      const maxSize = 500 * 1024 * 1024; // 500MB
+      
+      if (file.size > maxSize) {
+        alert('Video file is too large. Maximum size is 500MB');
+        return;
+      }
+      
+      const validTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+      if (!validTypes.includes(file.type)) {
+        alert('Invalid video format. Please upload MP4, WebM, or OGG');
+        return;
+      }
+      
+      // Show progress
+      document.getElementById('videoProgress').style.display = 'block';
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += Math.random() * 30;
+        if (progress > 90) progress = 90;
+        document.getElementById('videoProgressBar').style.width = progress + '%';
+        document.getElementById('videoUploadStatus').textContent = Math.round(progress) + '% uploaded...';
+      }, 200);
+      
+      // Simulate upload (in real app, this would send to server)
+      setTimeout(() => {
+        clearInterval(progressInterval);
+        document.getElementById('videoProgressBar').style.width = '100%';
+        document.getElementById('videoUploadStatus').textContent = 'Upload complete!';
+        
+        const videoKey = `${currentEditingModuleIndex}-${selectedLessonIdx}`;
+        lessonVideos[videoKey] = {
+          name: file.name,
+          size: (file.size / (1024 * 1024)).toFixed(2),
+          type: file.type,
+          uploadedAt: new Date().toLocaleString()
+        };
+        
+        renderLessons(currentEditingModuleIndex);
+        renderUploadedVideos();
+        fileInput.value = '';
+        
+        setTimeout(() => {
+          document.getElementById('videoProgress').style.display = 'none';
+          showSuccess('Video uploaded successfully!');
+        }, 1500);
+      }, 2000);
+    }
+
+    function renderUploadedVideos() {
+      const container = document.getElementById('uploadedVideos');
+      const moduleIndex = currentEditingModuleIndex;
+      
+      const moduleLessonVideos = Object.entries(lessonVideos)
+        .filter(([key]) => key.startsWith(moduleIndex + '-'))
+        .map(([key, video], idx) => {
+          const lessonIdx = key.split('-')[1];
+          const lessonName = modules[moduleIndex].lessons[lessonIdx];
+          return { key, video, lessonName };
+        });
+      
+      if (moduleLessonVideos.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      
+      container.innerHTML = '<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(102, 126, 234, 0.2);"><p style="color: white; font-weight: 600; margin-bottom: 0.75rem;">📹 Uploaded Videos</p>' + 
+        moduleLessonVideos.map(({ key, video, lessonName }) => `
+          <div class="video-item">
+            <div class="video-item-info">
+              <div class="video-item-name">${lessonName}</div>
+              <div class="video-item-details">
+                <i class="fas fa-film"></i> ${video.name} • ${video.size}MB
+              </div>
+              <div class="video-item-details">Uploaded: ${video.uploadedAt}</div>
+            </div>
+            <div class="video-item-preview"><i class="fas fa-play"></i></div>
+          </div>
+        `).join('') + 
+        '</div>';
+    }
+
+    function deleteModule(index) {
+      if (confirm('Delete this module?')) {
+        modules.splice(index, 1);
+        renderModules();
+        closeModuleEditor();
+      }
+    }
+
+    function saveModuleChanges() {
+      if (currentEditingModuleIndex === -1) return;
+      
+      modules[currentEditingModuleIndex].title = document.getElementById('moduleTitle').value || 'New Module';
+      modules[currentEditingModuleIndex].description = document.getElementById('moduleDescription').value;
+      
+      renderModules();
+      closeModuleEditor();
+      showSuccess('Module saved!');
+    }
+
+    function closeModuleEditor() {
+      document.getElementById('moduleEditor').style.display = 'none';
+      currentEditingModuleIndex = -1;
+      document.getElementById('uploadedVideos').innerHTML = '';
+      document.getElementById('videoUpload').value = '';
+    }
+
+    function saveCourse() {
+      const title = document.getElementById('courseTitle').value.trim();
+      if (!title) {
+        alert('Please enter a course title');
+        return;
+      }
+
+      const courseData = {
+        id: Date.now(),
+        title: title,
+        description: document.getElementById('courseDescription').value,
+        category: document.getElementById('courseCategory').value,
+        level: document.getElementById('courseLevel').value,
+        duration: document.getElementById('courseDuration').value,
+        maxStudents: document.getElementById('maxStudents').value,
+        learningOutcomes: document.getElementById('learningOutcomes').value,
+        modules: JSON.parse(JSON.stringify(modules)),
+        videos: JSON.parse(JSON.stringify(lessonVideos)),
+        status: 'draft',
+        createdAt: new Date().toLocaleDateString()
+      };
+
+      courses.push(courseData);
+      localStorage.setItem('teacherCourses', JSON.stringify(courses));
+      
+      showSuccess('Course saved as draft!');
+      updatePreview();
+    }
+
+    function publishCourse() {
+      const title = document.getElementById('courseTitle').value.trim();
+      if (!title) {
+        alert('Please enter a course title');
+        return;
+      }
+
+      if (modules.length === 0) {
+        alert('Please add at least one module');
+        return;
+      }
+
+      const courseData = {
+        id: Date.now(),
+        title: title,
+        description: document.getElementById('courseDescription').value,
+        category: document.getElementById('courseCategory').value,
+        level: document.getElementById('courseLevel').value,
+        duration: document.getElementById('courseDuration').value,
+        maxStudents: document.getElementById('maxStudents').value,
+        learningOutcomes: document.getElementById('learningOutcomes').value,
+        modules: JSON.parse(JSON.stringify(modules)),
+        videos: JSON.parse(JSON.stringify(lessonVideos)),
+        status: 'published',
+        publishedAt: new Date().toLocaleDateString()
+      };
+
+      courses.push(courseData);
+      localStorage.setItem('teacherCourses', JSON.stringify(courses));
+      
+      showSuccess('Course published successfully! Students can now enroll.');
+      document.getElementById('courseStatus').textContent = 'Published';
+      setTimeout(() => {
+        window.location.href = 'teacher-dashboard.html';
+      }, 2000);
+    }
+
+    function updatePreview() {
+      document.getElementById('previewTitle').textContent = document.getElementById('courseTitle').value || 'Untitled';
+      document.getElementById('previewCategory').textContent = document.getElementById('courseCategory').value || 'N/A';
+      document.getElementById('previewLevel').textContent = document.getElementById('courseLevel').value || 'N/A';
+      document.getElementById('previewDuration').textContent = (document.getElementById('courseDuration').value || 'N/A') + ' hrs';
+      document.getElementById('courseProgress').textContent = Math.round((modules.length / 5) * 100) + '%';
+    }
+
+    function showSuccess(message) {
+      const msg = document.getElementById('successMessage');
+      msg.textContent = '✓ ' + message;
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 3000);
+    }
+
+    // Update preview on input change
+    document.getElementById('courseTitle').addEventListener('input', updatePreview);
+    document.getElementById('courseCategory').addEventListener('change', updatePreview);
+    document.getElementById('courseLevel').addEventListener('change', updatePreview);
+    document.getElementById('courseDuration').addEventListener('input', updatePreview);
+
+    // YouTube & Google Drive Video Functions
+    function switchVideoSource(source) {
+      currentVideoSource = source;
+      document.getElementById('youtubeSection').style.display = source === 'youtube' ? 'block' : 'none';
+      document.getElementById('driveSection').style.display = source === 'drive' ? 'block' : 'none';
+    }
+
+    function extractYoutubeId(url) {
+      const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+        /^([a-zA-Z0-9_-]{11})$/
+      ];
+      for (let pattern of patterns) {
+        const match = url.match(pattern);
+        if (match) return match[1];
+      }
+      return null;
+    }
+
+    function extractDriveId(url) {
+      const patterns = [
+        /\/file\/d\/([a-zA-Z0-9_-]+)\//,
+        /^([a-zA-Z0-9_-]+)$/
+      ];
+      for (let pattern of patterns) {
+        const match = url.match(pattern);
+        if (match) return match[1];
+      }
+      return null;
+    }
+
+    function addVideoToLesson(source) {
+      const lessonSelect = document.getElementById('lessonVideoSelect');
+      const selectedLessonIdx = lessonSelect.value;
+      
+      if (!selectedLessonIdx && selectedLessonIdx !== '0') {
+        alert('Please select a lesson');
+        return;
+      }
+
+      let videoId = '';
+      let videoUrl = '';
+      let videoName = '';
+
+      if (source === 'youtube') {
+        videoUrl = document.getElementById('youtubeUrl').value.trim();
+        videoId = extractYoutubeId(videoUrl);
+        if (!videoId) {
+          alert('Invalid YouTube URL or Video ID');
+          return;
+        }
+        videoName = 'YouTube Video';
+        videoUrl = `https://www.youtube.com/embed/${videoId}`;
+      } else if (source === 'drive') {
+        videoUrl = document.getElementById('driveUrl').value.trim();
+        videoId = extractDriveId(videoUrl);
+        if (!videoId) {
+          alert('Invalid Google Drive URL or File ID');
+          return;
+        }
+        videoName = 'Google Drive Video';
+        videoUrl = `https://drive.google.com/file/d/${videoId}/preview`;
+      }
+
+      const videoKey = `${currentEditingModuleIndex}-${selectedLessonIdx}`;
+      lessonVideos[videoKey] = {
+        id: videoId,
+        url: videoUrl,
+        name: videoName,
+        source: source,
+        addedAt: new Date().toLocaleString()
+      };
+
+      document.getElementById('youtubeUrl').value = '';
+      document.getElementById('driveUrl').value = '';
+      
+      renderLessons(currentEditingModuleIndex);
+      renderUploadedVideos();
+      showSuccess(`${videoName} added successfully!`);
+    }
+  </script>
+</body>
+</html>

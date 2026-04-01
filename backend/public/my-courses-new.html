@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Courses - Teacher Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .my-courses-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .courses-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #667eea;
+    }
+
+    .header-title h2 {
+      color: white;
+      font-size: 1.8rem;
+      margin: 0;
+    }
+
+    .header-stats {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .stat-badge {
+      background: #0f1419;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      border: 1px solid #667eea;
+      text-align: center;
+    }
+
+    .stat-number {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.8rem;
+      color: #a3aac4;
+      margin-top: 0.25rem;
+    }
+
+    .courses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .course-card {
+      background: #1a202c;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .course-card:hover {
+      border-color: #667eea;
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.1);
+    }
+
+    .course-header {
+      padding: 1.5rem;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .course-title {
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .course-meta {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.8rem;
+      color: #a3aac4;
+      flex-wrap: wrap;
+    }
+
+    .course-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .course-body {
+      padding: 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .course-description {
+      color: #a3aac4;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+      flex: 1;
+    }
+
+    .progress-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      color: #a3aac4;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.3s ease;
+    }
+
+    .engagement-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .engagement-card {
+      background: #0f1419;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(102, 126, 234, 0.15);
+      text-align: center;
+    }
+
+    .engagement-value {
+      display: block;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 0.25rem;
+    }
+
+    .engagement-label {
+      display: block;
+      font-size: 0.75rem;
+      color: #a3aac4;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .course-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .btn-view {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-view:hover {
+      background: #5568d3;
+    }
+
+    .btn-edit {
+      background: #764ba2;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #6a4194;
+    }
+
+    .btn-analytics {
+      background: #4285f4;
+      color: white;
+    }
+
+    .btn-analytics:hover {
+      background: #3568d2;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-published {
+      background: rgba(40, 167, 69, 0.2);
+      color: #28a745;
+    }
+
+    .status-draft {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 4rem 2rem;
+      background: #1a202c;
+      border-radius: 1rem;
+      border: 2px dashed #667eea;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      color: #667eea;
+      margin-bottom: 1rem;
+    }
+
+    .empty-title {
+      color: white;
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-text {
+      color: #a3aac4;
+      margin-bottom: 1.5rem;
+    }
+
+    .create-btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .create-btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+
+    .students-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .students-modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #1a202c;
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 1px solid #667eea;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #667eea;
+    }
+
+    .modal-title {
+      color: white;
+      font-size: 1.3rem;
+      margin: 0;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #a3aac4;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+
+    .student-item {
+      background: #0f1419;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(102, 126, 234, 0.15);
+    }
+
+    .student-name {
+      color: white;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .student-progress {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-bar-small {
+      flex: 1;
+      height: 6px;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill-small {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .progress-percent {
+      color: #667eea;
+      font-weight: 600;
+      font-size: 0.85rem;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .student-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.8rem;
+      color: #a3aac4;
+      margin-top: 0.5rem;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 0.75rem 1.5rem;
+      background: #0f1419;
+      border: 1px solid #667eea;
+      color: #667eea;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .filter-btn.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .filter-btn:hover {
+      border-color: #764ba2;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📚 Acadify Teacher</div>
+      <ul class="sidebar-menu">
+        <li><a href="teacher-dashboard.html"><i class="fas fa-chalkboard-teacher mr-2"></i> Dashboard</a></li>
+        <li><a href="course-creation.html"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
+        <li><a href="my-courses.html" class="active"><i class="fas fa-folder-open mr-2"></i> My Courses</a></li>
+        <li><a href="#"><i class="fas fa-users mr-2"></i> Cohorts</a></li>
+        <li><a href="#"><i class="fas fa-file-signature mr-2"></i> Assessments</a></li>
+        <li><a href="calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
+        <li><a href="settings.html"><i class="fas fa-cog mr-2"></i> Preferences</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>My Courses</h1>
+        <div class="user-info">
+          <span id="teacherName">Teacher</span>
+          <div class="user-avatar" id="teacherAvatar">T</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="my-courses-container">
+          <div class="courses-header">
+            <div class="header-title">
+              <h2>Course Management</h2>
+            </div>
+            <div class="header-stats">
+              <div class="stat-badge">
+                <span class="stat-number" id="totalCourses">0</span>
+                <span class="stat-label">Total Courses</span>
+              </div>
+              <div class="stat-badge">
+                <span class="stat-number" id="totalStudents">0</span>
+                <span class="stat-label">Total Students</span>
+              </div>
+              <div class="stat-badge">
+                <span class="stat-number" id="avgEngagement">0%</span>
+                <span class="stat-label">Avg Engagement</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-tabs">
+            <button class="filter-btn active" onclick="filterCourses('all')">All Courses</button>
+            <button class="filter-btn" onclick="filterCourses('published')">Published</button>
+            <button class="filter-btn" onclick="filterCourses('draft')">Drafts</button>
+          </div>
+
+          <div class="courses-grid" id="coursesGrid"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Students Modal -->
+  <div class="students-modal" id="studentsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalCourseTitle">Course Students</h3>
+        <button class="close-btn" onclick="closeStudentsModal()">&times;</button>
+      </div>
+      <div id="studentsList"></div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    checkAuth('teacher');
+
+    document.getElementById('teacherName').textContent = getUserName();
+    document.getElementById('teacherAvatar').textContent = getUserInitials();
+
+    let allCourses = [];
+    let currentFilter = 'all';
+
+    function loadCourses() {
+      allCourses = JSON.parse(localStorage.getItem('teacherCourses')) || [];
+      renderCourses();
+      updateStats();
+    }
+
+    function filterCourses(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      renderCourses();
+    }
+
+    function renderCourses() {
+      const grid = document.getElementById('coursesGrid');
+      
+      let filteredCourses = allCourses;
+      if (currentFilter !== 'all') {
+        filteredCourses = allCourses.filter(c => c.status === currentFilter);
+      }
+
+      if (filteredCourses.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon"><i class="fas fa-inbox"></i></div>
+            <div class="empty-title">No Courses Yet</div>
+            <div class="empty-text">Create your first course to get started</div>
+            <a href="course-creation.html" class="create-btn">
+              <i class="fas fa-plus"></i> Create Course
+            </a>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filteredCourses.map((course, idx) => {
+        const students = getEnrolledStudents(course.id);
+        const avgProgress = calculateAverageProgress(course.id);
+        const engagementScore = calculateEngagementScore(course.id);
+
+        return `
+          <div class="course-card">
+            <div class="course-header">
+              <h3 class="course-title">${course.title}</h3>
+              <div class="course-meta">
+                <div class="course-meta-item">
+                  <i class="fas fa-layer-group"></i>
+                  ${course.modules.length} Modules
+                </div>
+                <div class="course-meta-item">
+                  <span class="status-badge status-${course.status}">
+                    ${course.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="course-body">
+              <p class="course-description">${course.description.substring(0, 100)}...</p>
+
+              <div class="engagement-grid">
+                <div class="engagement-card">
+                  <span class="engagement-value">${students.length}</span>
+                  <span class="engagement-label">Students</span>
+                </div>
+                <div class="engagement-card">
+                  <span class="engagement-value">${engagementScore}%</span>
+                  <span class="engagement-label">Engagement</span>
+                </div>
+              </div>
+
+              <div class="progress-section">
+                <div class="progress-label">
+                  <span>Avg Completion</span>
+                  <span>${avgProgress}%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: ${avgProgress}%;"></div>
+                </div>
+              </div>
+
+              <div class="course-actions">
+                <button class="action-btn btn-view" onclick="openStudentsModal(${idx})">
+                  <i class="fas fa-users"></i> (${students.length})
+                </button>
+                <button class="action-btn btn-analytics" onclick="viewAnalytics(${idx})">
+                  <i class="fas fa-chart-bar"></i> Stats
+                </button>
+                <button class="action-btn btn-edit" onclick="editCourse(${idx})">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getEnrolledStudents(courseId) {
+      const enrollments = JSON.parse(localStorage.getItem('studentEnrollments')) || {};
+      return enrollments[courseId] || [];
+    }
+
+    function calculateAverageProgress(courseId) {
+      const students = getEnrolledStudents(courseId);
+      if (students.length === 0) return 0;
+      
+      const totalProgress = students.reduce((sum, student) => {
+        const progress = student.progress || 0;
+        return sum + progress;
+      }, 0);
+      
+      return Math.round(totalProgress / students.length);
+    }
+
+    function calculateEngagementScore(courseId) {
+      const students = getEnrolledStudents(courseId);
+      if (students.length === 0) return 0;
+      
+      const engagement = students.reduce((sum, student) => {
+        const score = Math.min(100, (student.lessonsCompleted || 0) * 10 + (student.videoWatched || 0) * 5);
+        return sum + score;
+      }, 0);
+      
+      return Math.round(engagement / students.length);
+    }
+
+    function updateStats() {
+      const totalCourses = allCourses.length;
+      const allStudents = new Set();
+      let totalEngagement = 0;
+
+      allCourses.forEach(course => {
+        const students = getEnrolledStudents(course.id);
+        students.forEach(s => allStudents.add(s.studentId));
+        totalEngagement += calculateEngagementScore(course.id);
+      });
+
+      document.getElementById('totalCourses').textContent = totalCourses;
+      document.getElementById('totalStudents').textContent = allStudents.size;
+      document.getElementById('avgEngagement').textContent = 
+        totalCourses > 0 ? Math.round(totalEngagement / totalCourses) : 0;
+    }
+
+    function openStudentsModal(courseIndex) {
+      const course = allCourses[courseIndex];
+      const students = getEnrolledStudents(course.id);
+
+      document.getElementById('modalCourseTitle').textContent = `${course.title} - ${students.length} Students`;
+      
+      const studentsList = document.getElementById('studentsList');
+      if (students.length === 0) {
+        studentsList.innerHTML = '<p style="color: #a3aac4; text-align: center;">No students enrolled yet</p>';
+      } else {
+        studentsList.innerHTML = students.map(student => `
+          <div class="student-item">
+            <div class="student-name">${student.studentName || 'Student ' + student.studentId}</div>
+            <div class="student-progress">
+              <div class="progress-bar-small">
+                <div class="progress-fill-small" style="width: ${student.progress || 0}%;"></div>
+              </div>
+              <span class="progress-percent">${student.progress || 0}%</span>
+            </div>
+            <div class="student-stats">
+              <span><i class="fas fa-book-open"></i> ${student.lessonsCompleted || 0} lessons</span>
+              <span><i class="fas fa-video"></i> ${student.videoWatched || 0} videos</span>
+              <span><i class="fas fa-clock"></i> ${student.hoursSpent || 0}h spent</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('studentsModal').classList.add('show');
+    }
+
+    function closeStudentsModal() {
+      document.getElementById('studentsModal').classList.remove('show');
+    }
+
+    function viewAnalytics(courseIndex) {
+      alert('Analytics page coming soon! View detailed metrics for: ' + allCourses[courseIndex].title);
+    }
+
+    function editCourse(courseIndex) {
+      const courseId = allCourses[courseIndex].id;
+      localStorage.setItem('editingCourseId', courseId);
+      window.location.href = 'course-creation.html';
+    }
+
+    window.addEventListener('load', loadCourses);
+
+    document.getElementById('studentsModal').addEventListener('click', (e) => {
+      if (e.target.id === 'studentsModal') {
+        closeStudentsModal();
+      }
+    });
+  </script>
+</body>
+</html>

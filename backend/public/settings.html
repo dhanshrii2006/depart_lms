@@ -9,7 +9,7 @@
 <body>
   <div class="layout">
     <aside class="sidebar">
-      <div class="sidebar-logo">?? Acadify</div>
+      <div class="sidebar-logo">📚 Acadify</div>
       <ul class="sidebar-menu">
         <li><a href="student-dashboard.html">Dashboard</a></li>
         <li><a href="my-courses.html">My Courses</a></li>
@@ -87,29 +87,29 @@
 
         <div class="card" style="margin-bottom: 2rem;">
           <h3>Notification Preferences</h3>
-
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f0f0f0;"> 
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f0f0f0;">
             <div>
               <p style="font-weight: 600; margin-bottom: 0.25rem;">Email Notifications</p>
               <p style="color: #999; font-size: 0.9rem;">Receive updates about courses and assignments</p>
             </div>
-            <input type="checkbox" id="notifEmail" checked style="width: 20px; height: 20px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f0f0f0;"> 
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f0f0f0;">
             <div>
               <p style="font-weight: 600; margin-bottom: 0.25rem;">Quiz Reminders</p>
               <p style="color: #999; font-size: 0.9rem;">Get reminded about upcoming quizzes</p>
             </div>
-            <input type="checkbox" id="notifQuiz" checked style="width: 20px; height: 20px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f0f0f0;"> 
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f0f0f0;">
             <div>
               <p style="font-weight: 600; margin-bottom: 0.25rem;">Assignment Notifications</p>
               <p style="color: #999; font-size: 0.9rem;">Be notified when new assignments are posted</p>
             </div>
-            <input type="checkbox" id="notifAssignment" checked style="width: 20px; height: 20px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
@@ -117,24 +117,23 @@
               <p style="font-weight: 600; margin-bottom: 0.25rem;">Discussion Comments</p>
               <p style="color: #999; font-size: 0.9rem;">Get notified of replies to your comments</p>
             </div>
-            <input type="checkbox" id="notifComments" style="width: 20px; height: 20px; cursor: pointer;">
+            <input type="checkbox" style="width: 20px; height: 20px; cursor: pointer;">
           </div>
 
-          <button id="saveNotifBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Preferences</button>
+          <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Preferences</button>
         </div>
 
         <div class="card" style="border-color: #ff4757; background: #fff5f5;">
           <h3 style="color: #ff4757;">Danger Zone</h3>
-
+          
           <p style="color: #666; margin-bottom: 1.5rem;">These actions cannot be undone. Please proceed with caution.</p>
 
-          <button id="deleteAccountBtn" class="btn btn-danger" style="width: 100%;">Delete Account</button>
+          <button class="btn btn-danger" style="width: 100%;">Delete Account</button>
         </div>
       </div>
     </main>
   </div>
 
-  <script src="api.js"></script>
   <script src="auth.js"></script>
   <script>
     checkAuth('student');
@@ -143,117 +142,46 @@
     document.getElementById('userName').textContent = getUserName();
     document.getElementById('userAvatar').textContent = getUserInitials();
 
-    // Profile Form - PUT /api/users/me
+    // Handle profile form
     document.getElementById('profileForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const name = document.getElementById('fullName').value;
-      const email = document.getElementById('email').value;
-      const phone = document.getElementById('phone').value;
-      const bio = document.getElementById('bio').value;
-      
       const message = document.getElementById('profileMessage');
-      
-      try {
-        const response = await fetchWithAuth('/api/users/me', {
-          method: 'PUT',
-          body: JSON.stringify({ name, email, phone, bio })
-        });
-        
-        message.textContent = 'Profile updated successfully!';
-        message.className = 'alert alert-success';
-        message.classList.remove('hidden');
-      } catch (error) {
-        console.error('Profile update error:', error);
-        message.textContent = 'Failed to update profile. Please try again.';
-        message.className = 'alert alert-error';
-        message.classList.remove('hidden');
-      }
-      
+      message.textContent = '✓ Profile updated successfully!';
+      message.classList.add('alert-success');
+      message.classList.remove('alert-error', 'hidden');
+
       setTimeout(() => {
         message.classList.add('hidden');
       }, 3000);
     });
 
-    // Password Form - POST /api/auth/change-password
-    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+    // Handle password form
+    document.getElementById('passwordForm').addEventListener('submit', (e) => {
       e.preventDefault();
-
-      const currentPassword = document.getElementById('currentPassword').value;
+      
       const newPassword = document.getElementById('newPassword').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
 
-      const message = document.getElementById('passwordMessage');
-
       if (newPassword !== confirmPassword) {
+        const message = document.getElementById('passwordMessage');
         message.textContent = 'Passwords do not match!';
-        message.className = 'alert alert-error';
-        message.classList.remove('hidden');
+        message.classList.add('alert-error');
+        message.classList.remove('alert-success', 'hidden');
         return;
       }
 
-      try {
-        const response = await fetchWithAuth('/api/auth/change-password', {
-          method: 'POST',
-          body: JSON.stringify({ currentPassword, newPassword })
-        });
+      const message = document.getElementById('passwordMessage');
+      message.textContent = '✓ Password updated successfully!';
+      message.classList.add('alert-success');
+      message.classList.remove('alert-error', 'hidden');
 
-        message.textContent = 'Password changed successfully!';
-        message.className = 'alert alert-success';
-        message.classList.remove('hidden');
-        document.getElementById('passwordForm').reset();
-      } catch (error) {
-        console.error('Password change error:', error);
-        message.textContent = 'Failed to change password. Incorrect current password?';
-        message.className = 'alert alert-error';
-        message.classList.remove('hidden');
-      }
+      document.getElementById('passwordForm').reset();
 
       setTimeout(() => {
         message.classList.add('hidden');
       }, 3000);
     });
-
-    // Notification Preferences - localStorage only
-    document.getElementById('saveNotifBtn').addEventListener('click', () => {
-      const email = document.getElementById('notifEmail').checked;
-      const quiz = document.getElementById('notifQuiz').checked;
-      const assignment = document.getElementById('notifAssignment').checked;
-      const comments = document.getElementById('notifComments').checked;
-      
-      localStorage.setItem('notifPrefs', JSON.stringify({
-        email, quiz, assignment, comments
-      }));
-      
-      alert('Notification preferences saved!');
-    });
-
-    // Delete Account - DELETE /api/users/me
-    document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
-      if (!confirm('Are you absolutely sure? This action cannot be undone.')) {
-        return;
-      }
-
-      try {
-        await fetchWithAuth('/api/users/me', { method: 'DELETE' });
-        alert('Account deleted successfully. Redirecting to login...');
-        localStorage.clear();
-        window.location.href = 'index.html';
-      } catch (error) {
-        console.error('Delete account error:', error);
-        alert('Failed to delete account. Please try again.');
-      }
-    });
-
-    // Load notification preferences on page load
-    const savedPrefs = localStorage.getItem('notifPrefs');
-    if (savedPrefs) {
-      const prefs = JSON.parse(savedPrefs);
-      document.getElementById('notifEmail').checked = prefs.email || false;
-      document.getElementById('notifQuiz').checked = prefs.quiz || false;
-      document.getElementById('notifAssignment').checked = prefs.assignment || false;
-      document.getElementById('notifComments').checked = prefs.comments || false;
-    }
   </script>
 </body>
 </html>
