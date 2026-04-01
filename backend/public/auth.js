@@ -22,7 +22,7 @@ function logout() {
   localStorage.removeItem('authToken');
   
   // Call logout endpoint
-  fetch('http://localhost:5000/api/auth/logout', {
+  fetch('http://localhost:4000/api/auth/logout', {
     method: 'POST',
     credentials: 'include'
   }).finally(() => {

@@ -465,7 +465,7 @@ app.use((err, req, res, next) => {
 
 // === START SERVER ===
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
   console.log(`✅ Acadify server running on http://localhost:${PORT}`);

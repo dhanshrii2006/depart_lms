@@ -1,10 +1,10 @@
-const BASE = 'http://localhost:5000';
+const BASE = 'http://localhost:4000';
 
 async function fetchWithAuth(path, options = {}) {
   const { headers = {}, ...rest } = options;
   const token = localStorage.getItem('authToken');
-  
-  const response = await fetch(`http://localhost:5000${path}`, {
+
+  const response = await fetch(`http://localhost:4000${path}`, {
     ...rest,
     credentials: 'include',
     headers: {
