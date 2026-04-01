@@ -616,6 +616,17 @@
                   <i class="fas fa-rocket"></i> Publish Course
                 </button>
               </div>
+<div id="inviteCodeSection" style="display: none; margin-top: 2rem; background: #0f1419; border-radius: 1rem; padding: 2rem; border: 2px solid #667eea;">
+  <h3 style="color: #667eea; margin-top: 0; margin-bottom: 1rem;"><i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>Course Deployed Successfully!</h3>
+  <p style="color: #a0aec0; margin-bottom: 1.5rem;">Share this invitation code with your students so they can join your course:</p>
+  <div style="background: rgba(102, 126, 234, 0.1); padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1rem; border: 1px dashed #667eea;">
+    <p style="color: #a0aec0; font-size: 0.9rem; margin: 0 0 0.75rem 0;">Invitation Code:</p>
+    <div id="courseInviteCodeDisplay" style="font-size: 2rem; font-weight: 700; color: #667eea; text-align: center; letter-spacing: 2px; font-family: monospace; margin-bottom: 1rem;">XXXXXX</div>
+    <button class="btn-primary-large" onclick="copyInviteCodeFromCreation()" style="margin-top: 1rem;">
+      <i class="fas fa-copy"></i> Copy Invitation Code
+    </button>
+  </div>
+</div>
             </div>
 
             <!-- Sidebar Preview -->
@@ -1071,6 +1082,39 @@
       renderUploadedVideos();
       showSuccess(`${videoName} added successfully!`);
     }
+
+    function copyInviteCodeFromCreation() {
+      const code = document.getElementById('courseInviteCodeDisplay').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Invitation code copied to clipboard!');
+      });
+    }
+
+    // Override publishCourse to show invite code
+    const originalPublishCourse = window.publishCourse;
+    window.publishCourse = async function() {
+      try {
+        // Call original publish function
+        if (originalPublishCourse) await originalPublishCourse.call(this);
+        
+        // Get the current course data and show invite code
+        const courseTitle = document.getElementById('courseTitle').value;
+        if (courseTitle) {
+          const courses = await coursesAPI.list();
+          const course = courses.find(c => c.title === courseTitle);
+          if (course && course.invite_code) {
+            document.getElementById('courseInviteCodeDisplay').textContent = course.invite_code;
+            document.getElementById('inviteCodeSection').style.display = 'block';
+            alert('Course published successfully! Invitation code is ready to share.');
+          }
+        }
+      } catch (error) {
+        console.error('Error publishing course:', error);
+      }
+    };
+
   </script>
 </body>
 </html>
+
+
