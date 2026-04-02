@@ -5,162 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Students - Acadify</title>
   <link rel="stylesheet" href="../style.css">
-  <link rel="stylesheet" href="teacher.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="layout">
     <aside class="sidebar">
-      <div class="sidebar-logo">📚 Acadify</div>
+      <div class="sidebar-logo">Acadify</div>
       <ul class="sidebar-menu">
-        <li><a href="../teacher-dashboard.html">Dashboard</a></li>
-        <li><a href="../my-courses.html">My Courses</a></li>
-        <li><a href="students.html" class="active">Students</a></li>
-        <li><a href="assignments.html">Assignments</a></li>
-        <li><a href="grades.html">Grades</a></li>
-        <li><a href="analytics.html">Analytics</a></li>
-        <li><a href="messages.html">Messages</a></li>
-        <li><a href="../settings.html">Settings</a></li>
-        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+        <li><a href="/teacher-dashboard.html"><i class="fas fa-home mr-2"></i> Dashboard</a></li>
+        <li><a href="/course-creation.html"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
+        <li><a href="/teacher-my-courses.html"><i class="fas fa-book mr-2"></i> My Courses</a></li>
+        <li><a href="/assessment.html"><i class="fas fa-quiz mr-2"></i> Assessments</a></li>
+        <li><a href="/assignment-management.html"><i class="fas fa-tasks mr-2"></i> Assignments</a></li>
+        <li><a href="/teacher-calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
+        <li><a href="/teacher-settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
+        <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-power-off mr-2"></i> Exit</a></li>
       </ul>
     </aside>
-    <div class="main">
-      <div class="topbar">
-        <div class="topbar-left">
-          <span style="font-weight:600; color:#667eea;">Students</span>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Student Roster</h1>
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">T</div>
+          <span id="userName" class="text-small font-weight-600">Teacher</span>
         </div>
-        <div class="topbar-right">
-          <div class="profile">
-            <div class="profile-avatar" id="userInitials">TC</div>
-            <span id="userName">Teacher</span>
-          </div>
-        </div>
-      </div>
-      <div class="page-container">
+      </header>
+
+      <div class="container-fluid">
         <div class="card">
-          <h1>Students</h1>
-          <div id="loadingMessage" style="display: none; text-align: center; padding: 2rem; color: #667eea;">
-            <p>Loading courses and students...</p>
-          </div>
-          <div id="errorMessage" style="display: none; padding: 1rem; background-color: #fee2e2; color: #991b1b; border-radius: 8px; margin-bottom: 1rem;"></div>
+          <h2>Enrolled Students</h2>
           <div id="content">
-            <!-- Course sections will be rendered here -->
+            <p style="color: #999;">Loading students...</p>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   </div>
+
+  <style>
+    .mr-2 { margin-right: 0.5rem; }
+    .mt-4 { margin-top: 1rem; }
+    .text-small { font-size: 0.85rem; }
+    .font-weight-600 { font-weight: 600; }
+    .container-fluid { padding: 1.5rem; }
+  </style>
 
   <script src="../auth.js"></script>
   <script src="../api.js"></script>
   <script>
     checkAuth('teacher');
-    
-    var userName = localStorage.getItem('userName') || 'Teacher';
-    var userInitials = localStorage.getItem('userInitials') || 'TC';
-    document.getElementById('userName').textContent = userName;
-    document.getElementById('userInitials').textContent = userInitials;
 
-    // Load courses and students
-    async function loadStudents() {
-      try {
-        document.getElementById('loadingMessage').style.display = 'block';
-        document.getElementById('errorMessage').style.display = 'none';
-        document.getElementById('content').innerHTML = '';
-
-        // Fetch teacher's courses
-        const courses = await fetchWithAuth('/api/courses');
-
-        if (!courses || courses.length === 0) {
-          document.getElementById('content').innerHTML = '<p style="color: #999; text-align: center; padding: 2rem;">No courses created yet.</p>';
-          document.getElementById('loadingMessage').style.display = 'none';
-          return;
-        }
-
-        // For each course, fetch students
-        let html = '';
-        for (let i = 0; i < courses.length; i++) {
-          const course = courses[i];
-          
-          try {
-            // Fetch students for this course
-            const courseData = await fetchWithAuth(`/api/courses/${course.id}`);
-            const students = courseData.students || [];
-
-            html += `
-              <div style="margin-bottom: 2rem;">
-                <h2>${course.title}</h2>
-                <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
-                  <p style="color: #666; margin: 0;"><strong>Enrolled Students:</strong> ${students.length}</p>
-                </div>
-            `;
-
-            if (students.length === 0) {
-              html += '<p style="color: #999; text-align: center; padding: 1rem;">No students enrolled yet.</p>';
-            } else {
-              html += `
-                <table style="width: 100%; border-collapse: collapse;">
-                  <thead style="background-color: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-                    <tr>
-                      <th style="padding: 1rem; text-align: left; font-weight: 600; color: #111827;">Name</th>
-                      <th style="padding: 1rem; text-align: left; font-weight: 600; color: #111827;">Email</th>
-                      <th style="padding: 1rem; text-align: left; font-weight: 600; color: #111827;">Progress</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-              `;
-
-              for (let j = 0; j < students.length; j++) {
-                const student = students[j];
-                const progress = student.progress || 0;
-                const progressColor = progress >= 75 ? '#10b981' : progress >= 50 ? '#f59e0b' : '#ef4444';
-                
-                html += `
-                  <tr style="border-bottom: 1px solid #e5e7eb;">
-                    <td style="padding: 1rem; color: #111827;">${student.name || 'Unknown'}</td>
-                    <td style="padding: 1rem; color: #6b7280;">${student.email || ''}</td>
-                    <td style="padding: 1rem;">
-                      <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 100px; height: 6px; background-color: #e5e7eb; border-radius: 3px; overflow: hidden;">
-                          <div style="width: ${progress}%; height: 100%; background-color: ${progressColor}; transition: width 0.3s ease;"></div>
-                        </div>
-                        <span style="font-size: 0.85rem; color: #6b7280; min-width: 40px;">${progress}%</span>
-                      </div>
-                    </td>
-                  </tr>
-                `;
-              }
-
-              html += `
-                  </tbody>
-                </table>
-              `;
-            }
-
-            html += '</div>';
-          } catch (error) {
-            console.error(`Error loading students for course ${course.id}:`, error);
-            html += `
-              <div style="margin-bottom: 2rem; padding: 1rem; background-color: #fef3c7; border-radius: 8px; color: #92400e;">
-                <h2>${course.title}</h2>
-                <p>Error loading students for this course.</p>
-              </div>
-            `;
-          }
-        }
-
-        document.getElementById('content').innerHTML = html;
-        document.getElementById('loadingMessage').style.display = 'none';
-      } catch (error) {
-        console.error('Error loading courses:', error);
-        document.getElementById('errorMessage').textContent = error.message || 'Failed to load courses';
-        document.getElementById('errorMessage').style.display = 'block';
-        document.getElementById('loadingMessage').style.display = 'none';
-        document.getElementById('content').innerHTML = '';
-      }
+    function getUserName() {
+      return localStorage.getItem('userName') || 'Teacher';
     }
 
-    // Load students on page load
-    loadStudents();
+    function getUserInitials() {
+      const name = getUserName();
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
   </script>
 </body>
 </html>

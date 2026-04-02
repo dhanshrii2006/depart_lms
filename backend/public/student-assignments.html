@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Assignments | Acadify</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="student-dashboard.html"><i class="fas fa-home mr-2"></i> Dashboard</a></li>
+        <li><a href="my-courses.html"><i class="fas fa-book mr-2"></i> My Courses</a></li>
+        <li><a href="student-assignments.html" class="active"><i class="fas fa-tasks mr-2"></i> Assignments</a></li>
+        <li><a href="grades.html"><i class="fas fa-chart-bar mr-2"></i> Grades</a></li>
+        <li><a href="messages.html"><i class="fas fa-envelope mr-2"></i> Messages</a></li>
+        <li><a href="calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
+        <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-power-off mr-2"></i> Exit</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>My Assignments</h1>
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">S</div>
+          <span id="userName" class="text-small font-weight-600">Student</span>
+        </div>
+      </header>
+
+      <div class="container-fluid">
+        <div class="mb-4">
+          <h2 style="margin: 0 0 0.5rem 0;">Pending & Submitted Assignments</h2>
+          <p class="text-muted text-small">Track your assignment progress and deadlines</p>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card mb-4">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+              <label class="text-small" style="display: block; margin-bottom: 0.5rem;">Filter by Course:</label>
+              <select id="filterCourse" onchange="filterAssignments()" style="width: 100%; padding: 0.5rem;">
+                <option value="">All Courses</option>
+              </select>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+              <label class="text-small" style="display: block; margin-bottom: 0.5rem;">Status:</label>
+              <select id="filterStatus" onchange="filterAssignments()" style="width: 100%; padding: 0.5rem;">
+                <option value="">All Assignments</option>
+                <option value="pending">Not Started</option>
+                <option value="submitted">Submitted</option>
+                <option value="graded">Graded</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assignments List -->
+        <div id="assignmentsList">
+          <div class="text-center text-muted" style="padding: 2rem;">Loading assignments...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <style>
+    .mr-2 { margin-right: 0.5rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .text-muted { color: var(--text-muted); }
+    .text-small { font-size: 0.85rem; }
+    .font-weight-600 { font-weight: 600; }
+    .container-fluid { padding: 1.5rem; }
+
+    .assignment-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .assignment-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.1);
+      transform: translateY(-2px);
+    }
+
+    .assignment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 0.75rem;
+    }
+
+    .assignment-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .assignment-course {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: rgba(var(--warning-rgb), 0.15);
+      color: var(--warning);
+    }
+
+    .status-submitted {
+      background: rgba(var(--info-rgb), 0.15);
+      color: var(--info);
+    }
+
+    .status-graded {
+      background: rgba(var(--success-rgb), 0.15);
+      color: var(--success);
+    }
+
+    .due-date-info {
+      display: flex;
+      gap: 1.5rem;
+      margin: 1rem 0;
+      padding: 0.75rem 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-item {
+      flex: 1;
+    }
+
+    .info-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .due-badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.2rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .due-open {
+      background: rgba(var(--primary-rgb), 0.1);
+      color: var(--primary);
+    }
+
+    .due-overdue {
+      background: rgba(var(--error-rgb), 0.1);
+      color: var(--error);
+    }
+
+    .due-closed {
+      background: rgba(var(--text-muted-rgb), 0.1);
+      color: var(--text-muted);
+    }
+
+    .assignment-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .assignment-actions button {
+      flex: 1;
+    }
+
+    .days-remaining {
+      font-weight: 600;
+    }
+
+    .days-remaining.warning {
+      color: var(--warning);
+    }
+
+    .days-remaining.danger {
+      color: var(--error);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+    }
+  </style>
+
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+  <script>
+    checkAuth('student');
+
+    let allAssignments = [];
+    let allCourses = [];
+
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
+    async function loadCourses() {
+      try {
+        const courses = await enrollmentsAPI.myCourses();
+        allCourses = courses;
+
+        const filterCourse = document.getElementById('filterCourse');
+        filterCourse.innerHTML = '<option value="">All Courses</option>';
+
+        courses.forEach(course => {
+          const option = document.createElement('option');
+          option.value = course.id;
+          option.textContent = course.title;
+          filterCourse.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error loading courses:', error);
+      }
+    }
+
+    async function loadAssignments() {
+      try {
+        const assignments = await studentAssignmentsAPI.list();
+        allAssignments = assignments;
+        displayAssignments(assignments);
+      } catch (error) {
+        console.error('Error loading assignments:', error);
+        document.getElementById('assignmentsList').innerHTML = 
+          '<div class="text-center text-muted">Failed to load assignments</div>';
+      }
+    }
+
+    function getAssignmentStatus(assignment) {
+      if (assignment.status === 'graded') return 'graded';
+      if (assignment.status === 'submitted') return 'submitted';
+      return 'pending';
+    }
+
+    function getStatusLabel(status) {
+      switch(status) {
+        case 'graded': return 'Graded';
+        case 'submitted': return 'Submitted';
+        default: return 'Not Started';
+      }
+    }
+
+    function getStatusBadgeClass(status) {
+      switch(status) {
+        case 'graded': return 'status-graded';
+        case 'submitted': return 'status-submitted';
+        default: return 'status-pending';
+      }
+    }
+
+    function calculateDaysRemaining(dueDate) {
+      const due = new Date(dueDate);
+      const now = new Date();
+      const diff = due - now;
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return days;
+    }
+
+    function getDueBadgeClass(daysRemaining) {
+      if (daysRemaining < 0) return 'due-closed';
+      if (daysRemaining < 1) return 'due-overdue';
+      return 'due-open';
+    }
+
+    function getDueText(daysRemaining) {
+      if (daysRemaining < 0) return 'Closed';
+      if (daysRemaining === 0) return 'Due Today';
+      if (daysRemaining === 1) return 'Due Tomorrow';
+      return `${daysRemaining} days remaining`;
+    }
+
+    function displayAssignments(assignments) {
+      const container = document.getElementById('assignmentsList');
+
+      if (assignments.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted" style="padding: 2rem;">No assignments yet. Check back soon!</div>';
+        return;
+      }
+
+      let html = '';
+      assignments.forEach(assignment => {
+        const status = getAssignmentStatus(assignment);
+        const daysRemaining = calculateDaysRemaining(assignment.due_date);
+        const dueDate = new Date(assignment.due_date);
+
+        html += `
+          <div class="assignment-card" onclick="viewAssignment('${assignment.id}')">
+            <div class="assignment-header">
+              <div>
+                <div class="assignment-title">${assignment.title}</div>
+                <div class="assignment-course">${assignment.course_title}</div>
+              </div>
+              <span class="status-badge ${getStatusBadgeClass(status)}">${getStatusLabel(status)}</span>
+            </div>
+
+            <div class="due-date-info">
+              <div class="info-item">
+                <div class="info-label">Due Date</div>
+                <div class="info-value">
+                  ${dueDate.toLocaleDateString()} 
+                  <span style="font-weight: normal; color: var(--text-muted);">${dueDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Status</div>
+                <div class="info-value">
+                  <span class="due-badge ${getDueBadgeClass(daysRemaining)}">
+                    ${getDueText(daysRemaining)}
+                  </span>
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Points</div>
+                <div class="info-value">
+                  ${assignment.points_given !== null ? `${assignment.points_given}/${assignment.total_points}` : `0/${assignment.total_points}`}
+                </div>
+              </div>
+            </div>
+
+            ${assignment.teacher_feedback ? `
+              <div style="background: var(--surface-highest); padding: 0.75rem; border-radius: 0.5rem; margin: 0.75rem 0;">
+                <div class="text-small font-weight-600" style="margin-bottom: 0.25rem;">Teacher Feedback:</div>
+                <div class="text-small">${assignment.teacher_feedback}</div>
+              </div>
+            ` : ''}
+
+            <div class="assignment-actions">
+              <button class="btn btn-primary" onclick="event.stopPropagation(); viewAssignment('${assignment.id}')">
+                <i class="fas fa-arrow-right mr-2"></i>View & Submit
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function filterAssignments() {
+      const courseFilter = document.getElementById('filterCourse').value;
+      const statusFilter = document.getElementById('filterStatus').value;
+
+      const filtered = allAssignments.filter(a => {
+        const courseMatch = !courseFilter || a.course_id === courseFilter;
+        const status = getAssignmentStatus(a);
+        const statusMatch = !statusFilter || status === statusFilter;
+        return courseMatch && statusMatch;
+      });
+
+      displayAssignments(filtered);
+    }
+
+    function viewAssignment(assignmentId) {
+      window.location.href = `student-assignment-detail.html?id=${assignmentId}`;
+    }
+
+    // Load initial data
+    loadCourses();
+    loadAssignments();
+  </script>
+</body>
+</html>

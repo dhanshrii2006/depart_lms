@@ -734,6 +734,7 @@
   </div>
 
   <script src="auth.js"></script>
+  <script src="api.js"></script>
   <script>
     checkAuth('teacher');
 
@@ -1027,10 +1028,16 @@
     }
 
     function closeModuleEditor() {
-      document.getElementById('moduleEditor').style.display = 'none';
+      const editorEl = document.getElementById('moduleEditor');
+      if (editorEl) editorEl.style.display = 'none';
+      
       currentEditingModuleIndex = -1;
-      document.getElementById('uploadedVideos').innerHTML = '';
-      document.getElementById('videoUpload').value = '';
+      
+      const uploadedVideosEl = document.getElementById('uploadedVideos');
+      if (uploadedVideosEl) uploadedVideosEl.innerHTML = '';
+      
+      const videoUploadEl = document.getElementById('videoUpload');
+      if (videoUploadEl) videoUploadEl.value = '';
     }
 
     function saveCourse() {
@@ -1062,7 +1069,7 @@
       updatePreview();
     }
 
-    function publishCourse() {
+async function publishCourse() {
       const title = document.getElementById('courseTitle').value.trim();
       if (!title) {
         alert('Please enter a course title');
@@ -1070,33 +1077,53 @@
       }
 
       if (modules.length === 0) {
-        alert('Please add at least one module');
+        alert('Please add at least one module');        
         return;
       }
 
-      const courseData = {
-        id: Date.now(),
-        title: title,
-        description: document.getElementById('courseDescription').value,
-        category: document.getElementById('courseCategory').value,
-        level: document.getElementById('courseLevel').value,
-        duration: document.getElementById('courseDuration').value,
-        maxStudents: document.getElementById('maxStudents').value,
-        learningOutcomes: document.getElementById('learningOutcomes').value,
-        modules: JSON.parse(JSON.stringify(modules)),
-        videos: JSON.parse(JSON.stringify(lessonVideos)),
-        status: 'published',
-        publishedAt: new Date().toLocaleDateString()
-      };
+      try {
+        // Create course via API
+        const createResponse = await coursesAPI.create(title, document.getElementById('courseDescription').value);
+        const courseId = createResponse.id;
 
-      courses.push(courseData);
-      localStorage.setItem('teacherCourses', JSON.stringify(courses));
+        // Publish the course
+        const publishResponse = await coursesAPI.publish(courseId);
+        const inviteCode = publishResponse.course.invite_code;
+
+        // Show key modal
+        showKeyModal(inviteCode);
+      } catch (error) {
+        console.error('Error publishing course:', error);
+        alert('Error publishing course: ' + error.message);
+      }
+    }
+
+    function showKeyModal(key) {
+      const modal = document.getElementById('keyModal');
+      const keyDisplay = document.getElementById('keyDisplay');
+      keyDisplay.textContent = key;
       
-      showSuccess('Course published successfully! Students can now enroll.');
-      document.getElementById('courseStatus').textContent = 'Published';
+      // Set join link
+      const joinLink = window.location.origin + '/join-course.html?key=' + key;
+      document.getElementById('joinLink').value = joinLink;
+      
+      modal.style.display = 'flex';
+    }
+
+    function closeKeyModal() {
+      const modal = document.getElementById('keyModal');
+      modal.style.display = 'none';
+      // Redirect after closing
       setTimeout(() => {
         window.location.href = 'teacher-dashboard.html';
-      }, 2000);
+      }, 500);
+    }
+
+    function copyToClipboard(elementId) {
+      const element = document.getElementById(elementId);
+      element.select();
+      document.execCommand('copy');
+      alert('Copied to clipboard!');
     }
 
     function updatePreview() {
@@ -1201,5 +1228,28 @@
       showSuccess(`${videoName} added successfully!`);
     }
   </script>
-</body>
-</html>
+
+  <!-- Key Modal -->
+  <div id="keyModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: white; border-radius: 8px; padding: 40px; max-width: 500px; width: 90%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <h2 style="margin-top: 0; color: #333; text-align: center;">🎉 Course Published Successfully!</h2>
+      
+      <p style="text-align: center; color: #666; margin: 20px 0;">Share this key with your students to let them join the course:</p>
+      
+      <div style="background: #f0f0f0; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+        <p style="font-size: 12px; color: #999; margin: 0 0 10px 0;">Course Access Key</p>
+        <p id="keyDisplay" style="font-size: 32px; font-weight: bold; color: #007bff; margin: 0; letter-spacing: 2px; font-family: monospace;"></p>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <label style="display: block; font-size: 14px; color: #333; margin-bottom: 8px;">Or share this link:</label>
+        <div style="display: flex; gap: 8px;">
+          <input id="joinLink" type="text" readonly style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+          <button onclick="copyToClipboard('joinLink')" style="padding: 10px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Copy</button>
+        </div>
+      </div>
+
+      <button onclick="closeKeyModal()" style="width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">Done</button>
+    </div>
+  </div>
+

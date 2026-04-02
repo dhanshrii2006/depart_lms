@@ -1,10 +1,10 @@
-const BASE = 'http://localhost:4000';
+const BASE = 'http://localhost:8080';
 
 async function fetchWithAuth(path, options = {}) {
   const { headers = {}, ...rest } = options;
   const token = localStorage.getItem('authToken');
 
-  const response = await fetch(`http://localhost:4000${path}`, {
+  const response = await fetch(`http://localhost:8080${path}`, {
     ...rest,
     credentials: 'include',
     headers: {
@@ -62,6 +62,13 @@ const coursesAPI = {
       method: 'POST',
       body: JSON.stringify({ title, description })
     });
+  },
+
+  async publish(id) {
+    return fetchWithAuth(`/api/courses/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_published: true })
+    });
   }
 };
 
@@ -76,6 +83,10 @@ const enrollmentsAPI = {
 
   async myCourses() {
     return fetchWithAuth('/api/enrollments/my-courses');
+  },
+
+  async myStudents() {
+    return fetchWithAuth('/api/teacher/my-students');
   }
 };
 
@@ -88,3 +99,84 @@ async function healthCheck() {
     return false;
   }
 }
+
+// Assignments API
+const assignmentsAPI = {
+  async create(course_id, title, description, total_points, due_date, file_url) {
+    return fetchWithAuth('/api/assignments', {
+      method: 'POST',
+      body: JSON.stringify({ course_id, title, description, total_points, due_date, file_url })
+    });
+  },
+
+  async list(course_id) {
+    const url = course_id ? `/api/assignments?course_id=${course_id}` : '/api/assignments';
+    return fetchWithAuth(url);
+  },
+
+  async get(id) {
+    return fetchWithAuth(`/api/assignments/${id}`);
+  },
+
+  async update(id, data) {
+    return fetchWithAuth(`/api/assignments/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    });
+  },
+
+  async delete(id) {
+    return fetchWithAuth(`/api/assignments/${id}`, {
+      method: 'DELETE'
+    });
+  },
+
+  async getSubmissions(id) {
+    return fetchWithAuth(`/api/assignments/${id}/submissions`);
+  },
+
+  async gradeSubmission(assignmentId, submissionId, points_given, teacher_feedback) {
+    return fetchWithAuth(`/api/assignments/${assignmentId}/submissions/${submissionId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ points_given, teacher_feedback })
+    });
+  }
+};
+
+// Templates API
+const templatesAPI = {
+  async list() {
+    return fetchWithAuth('/api/templates');
+  },
+
+  async create(name, description, total_points, file_url) {
+    return fetchWithAuth('/api/templates', {
+      method: 'POST',
+      body: JSON.stringify({ name, description, total_points, file_url })
+    });
+  },
+
+  async delete(id) {
+    return fetchWithAuth(`/api/templates/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// Student Assignments API
+const studentAssignmentsAPI = {
+  async list() {
+    return fetchWithAuth('/api/student/assignments');
+  },
+
+  async get(id) {
+    return fetchWithAuth(`/api/student/assignments/${id}`);
+  },
+
+  async submit(id, submission_link) {
+    return fetchWithAuth(`/api/assignments/${id}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ submission_link })
+    });
+  }
+};

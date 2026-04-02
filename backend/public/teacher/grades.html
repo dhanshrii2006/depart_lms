@@ -5,42 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Grades - Acadify</title>
   <link rel="stylesheet" href="../style.css">
-  <link rel="stylesheet" href="teacher.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div class="page-container">
-    <div class="sidebar">
-      <h2>Menu</h2>
-      <a href="../teacher-dashboard.html">Dashboard</a>
-      <a href="../my-courses.html">My Courses</a>
-      <a href="students.html">Students</a>
-      <a href="assignments.html">Assignments</a>
-      <a href="grades.html" class="active">Grades</a>
-      <a href="analytics.html">Analytics</a>
-      <a href="messages.html">Messages</a>
-      <a href="../settings.html">Settings</a>
-      <a href="#" onclick="logout()">Logout</a>
-    </div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">Acadify</div>
+      <ul class="sidebar-menu">
+        <li><a href="/teacher-dashboard.html"><i class="fas fa-home mr-2"></i> Dashboard</a></li>
+        <li><a href="/course-creation.html"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
+        <li><a href="/teacher-my-courses.html"><i class="fas fa-book mr-2"></i> My Courses</a></li>
+        <li><a href="/assessment.html"><i class="fas fa-quiz mr-2"></i> Assessments</a></li>
+        <li><a href="/assignment-management.html"><i class="fas fa-tasks mr-2"></i> Assignments</a></li>
+        <li><a href="/teacher-calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
+        <li><a href="/teacher-settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
+        <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-power-off mr-2"></i> Exit</a></li>
+      </ul>
+    </aside>
 
-    <div class="main-content">
-      <div class="topbar">
+    <main class="main-content">
+      <header class="header">
         <h1>Grades</h1>
         <div class="user-info">
-          <span id="userDisplay">User</span>
+          <div class="user-avatar" id="userAvatar">T</div>
+          <span id="userName" class="text-small font-weight-600">Teacher</span>
         </div>
-      </div>
+      </header>
 
-      <div class="content">
+      <div class="container-fluid">
         <div class="card">
           <h2>Student Performance</h2>
           <div id="loadingState" class="loading-state">
             <p>Loading grades...</p>
           </div>
           <div id="errorState" class="error-message" style="display: none;"></div>
-          <div id="emptyState" class="empty-state" style="display: none;">
+          <div id="emptyState" class="empty-state" style="display: none;">      
             <p>No grades available yet. Students haven't completed any quizzes.</p>
           </div>
-          <table id="gradesTable" style="display: none;">
+          <table id="gradesTable" class="students-table" style="display: none;">
             <thead>
               <tr>
                 <th>Student</th>
@@ -54,20 +56,97 @@
           </table>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 
-  <script src="../api.js"></script>
+  <style>
+    .mr-2 { margin-right: 0.5rem; }
+    .mt-4 { margin-top: 1rem; }
+    .text-small { font-size: 0.85rem; }
+    .font-weight-600 { font-weight: 600; }
+    .container-fluid { padding: 1.5rem; }
+    
+    .students-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .students-table thead {
+      background: var(--surface-highest);
+      font-weight: 600;
+    }
+
+    .students-table td, .students-table th {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .students-table tbody tr:hover {
+      background: var(--surface-highest);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+    }
+
+    .badge-info {
+      background: rgba(59, 130, 246, 0.15);
+      color: #3b82f6;
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+    }
+
+    .badge-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    .error-message {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border-left: 4px solid #ef4444;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+    }
+  </style>
+
   <script src="../auth.js"></script>
+  <script src="../api.js"></script>
   <script>
-    // Check authentication
     checkAuth('teacher');
 
-    // Load user info
-    const userName = localStorage.getItem('userName') || 'Teacher';
-    document.getElementById('userDisplay').textContent = userName;
+    function getUserName() {
+      return localStorage.getItem('userName') || 'Teacher';
+    }
 
-    // Load grades on page load
+    function getUserInitials() {
+      const name = getUserName();
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+
+    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userAvatar').textContent = getUserInitials();
+
     loadGrades();
 
     async function loadGrades() {
@@ -78,14 +157,12 @@
         const gradesTable = document.getElementById('gradesTable');
         const gradesBody = document.getElementById('gradesBody');
 
-        // Show loading state
         loadingState.style.display = 'block';
         errorState.style.display = 'none';
         emptyState.style.display = 'none';
         gradesTable.style.display = 'none';
         gradesBody.innerHTML = '';
 
-        // Fetch grades data
         const grades = await fetchWithAuth('/api/teacher/grades');
 
         if (!grades || grades.length === 0) {
@@ -94,9 +171,8 @@
           return;
         }
 
-        // Calculate percentage and populate table
         grades.forEach(grade => {
-          const percentage = ((grade.score / grade.total) * 100).toFixed(1);
+          const percentage = ((grade.score / grade.total) * 100).toFixed(1);    
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${grade.student_name}</td>
@@ -111,26 +187,25 @@
           gradesBody.appendChild(row);
         });
 
-        // Show table, hide loading
         loadingState.style.display = 'none';
         gradesTable.style.display = 'table';
       } catch (error) {
         console.error('Error loading grades:', error);
         const loadingState = document.getElementById('loadingState');
         const errorState = document.getElementById('errorState');
-        
+
         loadingState.style.display = 'none';
         errorState.style.display = 'block';
-        errorState.textContent = `Error loading grades: ${error.message}`;
+        errorState.textContent = `Error loading grades: ${error.message}`;      
       }
     }
 
     function getGradeBadgeClass(percentage) {
       const pct = parseFloat(percentage);
-      if (pct >= 80) return 'badge-success'; // A
-      if (pct >= 70) return 'badge-info';    // B
-      if (pct >= 60) return 'badge-warning'; // C
-      return 'badge-danger';                  // F
+      if (pct >= 80) return 'badge-success';
+      if (pct >= 70) return 'badge-info';
+      if (pct >= 60) return 'badge-warning';
+      return 'badge-danger';
     }
   </script>
 </body>

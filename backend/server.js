@@ -302,6 +302,37 @@ app.get('/api/courses/:id', verifyToken, async (req, res) => {
   }
 });
 
+  // PATCH /api/courses/:id - Update course (publish)
+  app.patch('/api/courses/:id', verifyToken, checkRole('teacher'), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { is_published } = req.body;
+
+      // Verify teacher owns this course
+      const courseResult = await pool.query(
+        'SELECT * FROM courses WHERE id = $1 AND teacher_id = $2',
+        [id, req.user.id]
+      );
+
+      if (courseResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Course not found or access denied' });
+      }
+
+      // Update is_published status
+      const updateResult = await pool.query(
+        'UPDATE courses SET is_published = $1 WHERE id = $2 RETURNING *',
+        [is_published, id]
+      );
+
+      res.json({
+        message: 'Course updated successfully',
+        course: updateResult.rows[0]
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // GET /api/courses/:id/students - Get enrolled students for a course
   app.get('/api/courses/:id/students', verifyToken, async (req, res) => {
     try {
@@ -374,6 +405,59 @@ app.get('/api/courses/:id', verifyToken, async (req, res) => {
     }
   });
 
+  // GET /api/teacher/my-students - Get all students enrolled in teacher's courses
+  app.get('/api/teacher/my-students', verifyToken, checkRole('teacher'), async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT DISTINCT
+          users.id as student_id,
+          users.name as student_name,
+          users.email,
+          courses.id as course_id,
+          courses.title as course_title,
+          enrollments.enrolled_at,
+          enrollments.id as enrollment_id
+        FROM enrollments
+        JOIN users ON enrollments.student_id = users.id
+        JOIN courses ON enrollments.course_id = courses.id
+        WHERE courses.teacher_id = $1
+        ORDER BY courses.title ASC, users.name ASC`,
+        [req.user.id]
+      );
+
+      // Group by course for frontend
+      const coursesMap = {};
+      result.rows.forEach(row => {
+        if (!coursesMap[row.course_id]) {
+          coursesMap[row.course_id] = {
+            course_id: row.course_id,
+            course_title: row.course_title,
+            student_count: 0,
+            students: []
+          };
+        }
+        coursesMap[row.course_id].students.push({
+          student_id: row.student_id,
+          student_name: row.student_name,
+          email: row.email,
+          enrolled_at: row.enrolled_at
+        });
+        coursesMap[row.course_id].student_count = coursesMap[row.course_id].students.length;
+      });
+
+      const courses = Object.values(coursesMap);
+      const totalStudents = result.rows.length;
+
+      res.json({
+        total_enrolled: totalStudents,
+        courses: courses
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+// POST /api/enrollments/join
 // POST /api/enrollments/join
 app.post('/api/enrollments/join', verifyToken, checkRole('student'), async (req, res) => {
   try {
@@ -395,11 +479,20 @@ app.post('/api/enrollments/join', verifyToken, checkRole('student'), async (req,
 
     const courseId = courseResult.rows[0].id;
 
+    // Check if already enrolled
+    const existingEnrollment = await pool.query(
+      'SELECT id FROM enrollments WHERE student_id = $1 AND course_id = $2',
+      [req.user.id, courseId]
+    );
+
+    if (existingEnrollment.rows.length > 0) {
+      return res.status(400).json({ error: 'Already enrolled in this course' });
+    }
+
     // Create enrollment
     const result = await pool.query(
       `INSERT INTO enrollments (student_id, course_id)
        VALUES ($1, $2)
-       ON CONFLICT (student_id, course_id) DO NOTHING
        RETURNING *`,
       [req.user.id, courseId]
     );
@@ -440,6 +533,374 @@ app.get('/api/enrollments/my-courses', verifyToken, checkRole('student'), async 
     );
 
     res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// === ASSIGNMENTS ===
+
+// POST /api/assignments - Create assignment (Teacher only)
+app.post('/api/assignments', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { course_id, title, description, total_points, due_date, file_url } = req.body;
+
+    if (!course_id || !title || !due_date) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Verify teacher owns the course
+    const courseCheck = await pool.query(
+      'SELECT id FROM courses WHERE id = $1 AND teacher_id = $2',
+      [course_id, req.user.id]
+    );
+
+    if (courseCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Course not found or access denied' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO assignments (course_id, teacher_id, title, description, total_points, due_date, file_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, course_id, title, description, total_points, due_date, file_url, created_at`,
+      [course_id, req.user.id, title, description || null, total_points || 100, due_date, file_url || null]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/assignments - List all assignments for teacher's courses
+app.get('/api/assignments', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { course_id, status, sort_by } = req.query;
+
+    let query = `
+      SELECT a.*, c.title as course_title, COUNT(DISTINCT e.student_id) as total_students,
+             COUNT(DISTINCT CASE WHEN s.id IS NOT NULL THEN 1 END) as submitted_count
+      FROM assignments a
+      JOIN courses c ON a.course_id = c.id
+      LEFT JOIN enrollments e ON c.id = e.course_id
+      LEFT JOIN assignment_submissions s ON a.id = s.assignment_id AND s.status = 'submitted'
+      WHERE a.teacher_id = $1
+    `;
+    const params = [req.user.id];
+
+    if (course_id) {
+      query += ` AND a.course_id = $${params.length + 1}`;
+      params.push(course_id);
+    }
+
+    query += ` GROUP BY a.id, c.title ORDER BY a.due_date DESC`;
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/assignments/:id - Get assignment details
+app.get('/api/assignments/:id', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT a.*, c.title as course_title FROM assignments a
+       JOIN courses c ON a.course_id = c.id
+       WHERE a.id = $1 AND a.teacher_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Assignment not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH /api/assignments/:id - Update assignment
+app.patch('/api/assignments/:id', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, total_points, due_date, file_url } = req.body;
+
+    const result = await pool.query(
+      `UPDATE assignments SET title = COALESCE($1, title), description = COALESCE($2, description),
+                              total_points = COALESCE($3, total_points), due_date = COALESCE($4, due_date),
+                              file_url = COALESCE($5, file_url), updated_at = CURRENT_TIMESTAMP
+       WHERE id = $6 AND teacher_id = $7
+       RETURNING *`,
+      [title || null, description || null, total_points || null, due_date || null, file_url || null, id, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Assignment not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE /api/assignments/:id - Delete assignment
+app.delete('/api/assignments/:id', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM assignments WHERE id = $1 AND teacher_id = $2 RETURNING id',
+      [id, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Assignment not found' });
+    }
+
+    res.json({ message: 'Assignment deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/assignments/:id/submissions - Get all submissions for assignment
+app.get('/api/assignments/:id/submissions', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verify teacher owns assignment
+    const assignmentCheck = await pool.query(
+      'SELECT id FROM assignments WHERE id = $1 AND teacher_id = $2',
+      [id, req.user.id]
+    );
+
+    if (assignmentCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Assignment not found or access denied' });
+    }
+
+    const result = await pool.query(
+      `SELECT s.*, u.name as student_name, u.email as student_email
+       FROM assignment_submissions s
+       JOIN users u ON s.student_id = u.id
+       WHERE s.assignment_id = $1
+       ORDER BY s.submitted_at DESC`,
+      [id]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH /api/assignments/:id/submissions/:submissionId - Grade submission
+app.patch('/api/assignments/:id/submissions/:submissionId', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { id, submissionId } = req.params;
+    const { points_given, teacher_feedback } = req.body;
+
+    // Verify teacher owns assignment
+    const assignmentCheck = await pool.query(
+      'SELECT id FROM assignments WHERE id = $1 AND teacher_id = $2',
+      [id, req.user.id]
+    );
+
+    if (assignmentCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Assignment not found or access denied' });
+    }
+
+    const result = await pool.query(
+      `UPDATE assignment_submissions SET points_given = $1, teacher_feedback = $2, status = 'graded', graded_at = CURRENT_TIMESTAMP
+       WHERE id = $3 AND assignment_id = $4
+       RETURNING *`,
+      [points_given || null, teacher_feedback || null, submissionId, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/templates - Get teacher's saved templates
+app.get('/api/templates', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, description, total_points, file_url, created_at FROM assignment_templates WHERE teacher_id = $1 ORDER BY created_at DESC',
+      [req.user.id]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/templates - Save assignment as template
+app.post('/api/templates', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { name, description, total_points, file_url } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Template name required' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO assignment_templates (teacher_id, name, description, total_points, file_url)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [req.user.id, name, description || null, total_points || 100, file_url || null]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE /api/templates/:id - Delete template
+app.delete('/api/templates/:id', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM assignment_templates WHERE id = $1 AND teacher_id = $2 RETURNING id',
+      [id, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Template not found' });
+    }
+
+    res.json({ message: 'Template deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// === STUDENT ASSIGNMENT ENDPOINTS ===
+
+// GET /api/student/assignments - Get all assignments for student's courses
+app.get('/api/student/assignments', verifyToken, checkRole('student'), async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT a.*, c.title as course_title, c.id as course_id,
+              s.id as submission_id, s.submission_link, s.submitted_at, s.status, s.points_given, s.teacher_feedback
+       FROM assignments a
+       JOIN courses c ON a.course_id = c.id
+       JOIN enrollments e ON c.id = e.course_id
+       LEFT JOIN assignment_submissions s ON a.id = s.assignment_id AND s.student_id = $1
+       WHERE e.student_id = $1
+       ORDER BY a.due_date DESC`,
+      [req.user.id]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/student/assignments/:id - Get assignment details + submission status
+app.get('/api/student/assignments/:id', verifyToken, checkRole('student'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get assignment
+    const assignmentResult = await pool.query(
+      `SELECT a.*, c.title as course_title FROM assignments a
+       JOIN courses c ON a.course_id = c.id
+       JOIN enrollments e ON c.id = e.course_id
+       WHERE a.id = $1 AND e.student_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (assignmentResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Assignment not found' });
+    }
+
+    // Get submission if exists
+    const submissionResult = await pool.query(
+      'SELECT id, submission_link, submitted_at, status, points_given, teacher_feedback FROM assignment_submissions WHERE assignment_id = $1 AND student_id = $2',
+      [id, req.user.id]
+    );
+
+    const response = {
+      ...assignmentResult.rows[0],
+      submission: submissionResult.rows[0] || null
+    };
+
+    res.json(response);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/assignments/:id/submit - Submit assignment
+app.post('/api/assignments/:id/submit', verifyToken, checkRole('student'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { submission_link } = req.body;
+
+    if (!submission_link) {
+      return res.status(400).json({ error: 'Submission link required' });
+    }
+
+    // Check if student is enrolled in the course
+    const enrollmentCheck = await pool.query(
+      `SELECT e.id FROM enrollments e
+       JOIN assignments a ON a.course_id = e.course_id
+       WHERE a.id = $1 AND e.student_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (enrollmentCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Not enrolled in this course' });
+    }
+
+    // Check if already submitted
+    const existingSubmission = await pool.query(
+      'SELECT id FROM assignment_submissions WHERE assignment_id = $1 AND student_id = $2',
+      [id, req.user.id]
+    );
+
+    if (existingSubmission.rows.length > 0) {
+      // Update existing submission
+      const result = await pool.query(
+        `UPDATE assignment_submissions SET submission_link = $1, submitted_at = CURRENT_TIMESTAMP, status = 'submitted'
+         WHERE assignment_id = $2 AND student_id = $3
+         RETURNING *`,
+        [submission_link, id, req.user.id]
+      );
+
+      return res.json({
+        message: 'Assignment resubmitted successfully',
+        submission: result.rows[0]
+      });
+    }
+
+    // Create new submission
+    const result = await pool.query(
+      `INSERT INTO assignment_submissions (assignment_id, student_id, submission_link, status)
+       VALUES ($1, $2, $3, 'submitted')
+       RETURNING *`,
+      [id, req.user.id, submission_link]
+    );
+
+    res.status(201).json({
+      message: 'Assignment submitted successfully',
+      submission: result.rows[0]
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

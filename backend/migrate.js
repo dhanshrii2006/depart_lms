@@ -142,7 +142,53 @@ async function migrate() {
       )
     `);
     console.log('✓ posts table created');
+    // Assignments table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS assignments (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+        teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        total_points INT DEFAULT 100,
+        due_date TIMESTAMP NOT NULL,
+        file_url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✔ assignments table created');
 
+    // Assignment Submissions table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS assignment_submissions (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+        student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        submission_link TEXT NOT NULL,
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        points_given INT,
+        teacher_feedback TEXT,
+        status VARCHAR(50) DEFAULT 'submitted' CHECK (status IN ('pending', 'submitted', 'graded')),
+        graded_at TIMESTAMP,
+        UNIQUE(assignment_id, student_id)
+      )
+    `);
+    console.log('✔ assignment_submissions table created');
+
+    // Assignment Templates table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS assignment_templates (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        total_points INT DEFAULT 100,
+        file_url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✔ assignment_templates table created');
     console.log('\n✅ Migration completed successfully!');
   } catch (error) {
     console.error('❌ Migration failed:', error.message);

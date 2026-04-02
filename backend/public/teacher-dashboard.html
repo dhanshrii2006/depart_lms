@@ -9,28 +9,30 @@
 </head>
 <body>
   <div class="layout">
-    <aside class="sidebar">
+    <aside class="sidebar">        
       <div class="sidebar-logo">Acadify</div>
       <ul class="sidebar-menu">
-        <li><a href="teacher-dashboard.html" class="active"><i class="fas fa-chalkboard-teacher mr-2"></i> Dashboard</a></li>
-          <li><a href="course-creation.html"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
-          <li><a href="teacher-my-courses.html"><i class="fas fa-folder-open mr-2"></i> My Courses</a></li>
-        <li><a href="assessment.html"><i class="fas fa-quiz mr-2"></i> Assessments</a></li>        <li><a href="teacher-calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>     
-        <li><a href="teacher-settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
+        <li><a href="/teacher-dashboard.html" class="active"><i class="fas fa-home mr-2"></i> Dashboard</a></li>
+        <li><a href="/course-creation.html"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
+        <li><a href="/teacher-my-courses.html"><i class="fas fa-book mr-2"></i> My Courses</a></li>
+        <li><a href="/assessment.html"><i class="fas fa-quiz mr-2"></i> Assessments</a></li>
+        <li><a href="/assignment-management.html"><i class="fas fa-tasks mr-2"></i> Assignments</a></li>
+        <li><a href="/teacher-calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
+        <li><a href="/teacher-settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
         <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-power-off mr-2"></i> Exit</a></li>
       </ul>
     </aside>
 
-    <main class="main-content">
-      <header class="header">
-        <h1>Educator Terminal</h1>
-        <div class="user-info">
+    <main class="main-content">    
+      <header class="header">      
+        <h1>Educator Terminal</h1> 
+        <div class="user-info">    
           <div class="user-avatar" id="userAvatar">T</div>
           <span id="userName" class="text-small font-weight-600">Teacher</span>
         </div>
       </header>
 
-      <div class="welcome-banner">
+      <div class="welcome-banner"> 
         <h2>Instructional Overview</h2>
         <p class="opacity-60">Monitor student engagement and manage your academic modules from a centralized command center.</p>
       </div>
@@ -44,7 +46,7 @@
           <div class="stat-value">142</div>
           <div class="stat-label">Active Students</div>
         </div>
-        <div class="card stat-card">
+        <div class="card stat-card" style="display: none;">
           <div class="stat-value">08</div>
           <div class="stat-label">Pending Reviews</div>
         </div>
@@ -52,8 +54,22 @@
 
       <div class="grid grid-2 mb-4">
         <div class="card">
-          <h3 class="mb-3">Quick Stats</h3>
-          <p class="text-muted text-small">Use "Create Course" from the menu to start building your next module.</p>
+          <h3 class="mb-3">Enrolled Students Overview</h3>
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size: 2rem; color: var(--primary); font-weight: bold;" id="totalEnrolledCount">0</div>
+            <div class="text-small text-muted">Total Students Enrolled</div>
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <label for="courseFilter" class="text-small" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Filter by Course:</label>
+            <select id="courseFilter" class="course-filter-select">
+              <option value="">All Courses</option>
+            </select>
+          </div>
+          
+          <div id="enrolledStudentsContainer" style="max-height: 600px; overflow-y: auto;">
+            <div class="text-muted text-small" style="text-align: center; padding: 2rem 0;">Loading students...</div>
+          </div>
         </div>
         </div>
     </main>
@@ -66,41 +82,129 @@
     .btn-block { width: 100%; display: block; }
     .flex-column { display: flex; flex-direction: column; }
     .gap-3 { gap: 1rem; }
-    
+
     .mini-course-card {
       background: var(--surface-highest);
       padding: 1rem;
       border-radius: 1rem;
       border-left: 3px solid var(--primary);
     }
+
+    .students-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .students-table thead {
+      background: var(--surface-highest);
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+
+    .students-table th {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .students-table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .students-table tbody tr:hover {
+      background: var(--surface-highest);
+    }
+
+    .course-header {
+      background: var(--surface-highest);
+      padding: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .course-header:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .course-students {
+      margin-left: 1rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .course-students.visible {
+      display: block;
+    }
+
+    .student-uid {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: var(--primary);
+    }
+
+    .enrollment-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .course-filter-select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+    }
+
+    .course-filter-select:hover {
+      border-color: var(--primary);
+    }
+
+    .course-filter-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+    }
   </style>
 
-  <script src="auth.js"></script>
-  <script src="api.js"></script>
+  <script src="auth.js"></script>  
+  <script src="api.js"></script>   
   <script>
     checkAuth('teacher');
 
-    document.getElementById('userName').textContent = getUserName();
+    document.getElementById('userName').textContent = getUserName();  
     document.getElementById('userAvatar').textContent = getUserInitials();
 
-    async function loadCourses() {
+    async function loadCourses() { 
       try {
         const courses = await coursesAPI.list();
         document.getElementById('coursesCount').textContent = courses.length.toString().padStart(2, '0');
 
-        const coursesList = document.getElementById('coursesList');
+        const coursesList = document.getElementById('coursesList');   
         if (courses.length === 0) {
-          coursesList.innerHTML = '<p class="text-muted text-small">No active modules found. Start by deploying your first course.</p>';
+          coursesList.innerHTML = '<p class="text-muted text-small">No active modules found. Start by deploying your first course.</p>';    
           return;
         }
 
         coursesList.innerHTML = courses.map(course => `
           <div class="mini-course-card">
             <div class="flex-row justify-between mb-1">
-              <h4 style="font-size: 1rem;">${course.title}</h4>
+              <h4 style="font-size: 1rem;">${course.title}</h4>       
               <span class="label-sm" style="color: var(--primary); font-family: monospace;">${course.invite_code}</span>
             </div>
-            <p class="text-small opacity-60">${course.description || 'No description provided.'}</p>
+            <p class="text-small opacity-60">${course.description || 'No description provided.'}</p>     
             <div class="mt-2 text-small opacity-40">
               <i class="far fa-calendar-alt mr-1"></i> ${new Date(course.created_at).toLocaleDateString()}
             </div>
@@ -111,9 +215,83 @@
       }
     }
 
+    let allCoursesData = [];
 
+    async function loadEnrolledStudents() {
+      try {
+        const data = await enrollmentsAPI.myStudents();
+        document.getElementById('totalEnrolledCount').textContent = data.total_enrolled;
+        allCoursesData = data.courses;
 
-    loadCourses();
+        // Populate course filter dropdown
+        const courseFilter = document.getElementById('courseFilter');
+        courseFilter.innerHTML = '<option value="">All Courses</option>';
+        data.courses.forEach(course => {
+          const option = document.createElement('option');
+          option.value = course.course_id;
+          option.textContent = `${course.course_title} (${course.student_count} students)`;
+          courseFilter.appendChild(option);
+        });
+
+        // Add event listener for course filter
+        courseFilter.addEventListener('change', filterStudents);
+
+        // Display all students initially
+        displayAllStudents(data.courses);
+      } catch (error) {
+        console.error('Error loading enrolled students:', error);
+        document.getElementById('enrolledStudentsContainer').innerHTML = 
+          '<p class="text-muted text-small" style="color: var(--error);">Failed to load students</p>';
+      }
+    }
+
+    function displayAllStudents(coursesData) {
+      let html = '<table class="students-table"><thead><tr><th>Student Name</th><th>Student ID</th></tr></thead><tbody>';
+      
+      coursesData.forEach(course => {
+        course.students.forEach(student => {
+          html += `
+            <tr>
+              <td>${student.student_name}</td>
+              <td><span class="student-uid">${student.student_id}</span></td>
+            </tr>
+          `;
+        });
+      });
+
+      html += '</tbody></table>';
+      document.getElementById('enrolledStudentsContainer').innerHTML = html;
+    }
+
+    function filterStudents() {
+      const courseFilter = document.getElementById('courseFilter');
+      const selectedCourseId = courseFilter.value;
+
+      if (selectedCourseId === '') {
+        // Show all students
+        displayAllStudents(allCoursesData);
+      } else {
+        // Show students from selected course only
+        const selectedCourse = allCoursesData.find(c => c.course_id == selectedCourseId);
+        if (selectedCourse) {
+          let html = '<table class="students-table"><thead><tr><th>Student Name</th><th>Student ID</th></tr></thead><tbody>';
+          
+          selectedCourse.students.forEach(student => {
+            html += `
+              <tr>
+                <td>${student.student_name}</td>
+                <td><span class="student-uid">${student.student_id}</span></td>
+              </tr>
+            `;
+          });
+
+          html += '</tbody></table>';
+          document.getElementById('enrolledStudentsContainer').innerHTML = html;
+        }
+      }
+    }
+
+    loadEnrolledStudents();
   </script>
 </body>
 </html>

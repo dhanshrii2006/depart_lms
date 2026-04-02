@@ -121,11 +121,29 @@
       }
     }
 
-    function enrollCourse(title) {
-       var code = prompt('Enter enrollment key for: ' + title);
+    async function enrollCourse(courseTitle) {
+       const code = prompt('Enter enrollment key for: ' + courseTitle);
        if (!code) return;
-       // Mock UI interaction
-       alert('Enrolling in ' + title + '...');
+       
+       try {
+           const response = await enrollmentsAPI.join(code);
+           if (response.error) {
+               alert('Error: ' + response.error);
+               return;
+           }
+           alert('Successfully enrolled in ' + courseTitle + '!');
+           // Refresh courses list
+           loadCourses();
+       } catch (error) {
+           console.error('Error:', error);
+           if (error.message.includes('Invalid invite code')) {
+               alert('Invalid enrollment key. Please check the key and try again.');
+           } else if (error.message.includes('already')) {
+               alert('You are already enrolled in this course.');
+           } else {
+               alert('Error enrolling in course: ' + error.message);
+           }
+       }
     }
 
     renderCourses(mockCourses);
