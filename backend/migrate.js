@@ -29,7 +29,20 @@ async function migrate() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('✓ users table created');
+    console.log('✔ users table created');
+
+    // Add roll_number and is_verified columns if they don't exist
+    await client.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS roll_number VARCHAR(20) UNIQUE
+    `).catch(() => {
+      // Column might already exist, ignore error
+    });
+    await client.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false
+    `).catch(() => {
+      // Column might already exist, ignore error
+    });
+    console.log('✔ users table columns updated');
 
     // Courses table
     await client.query(`
@@ -189,7 +202,54 @@ async function migrate() {
       )
     `);
     console.log('✔ assignment_templates table created');
-    console.log('\n✅ Migration completed successfully!');
+    // SECTION 1: Add roll_number index to users table
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_users_roll_number ON users(roll_number)
+    `);
+    console.log('âœ" idx_users_roll_number index created');
+
+    // SECTION 2: Valid Roll Numbers table for CSV whitelisting
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS valid_roll_numbers (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        roll_number VARCHAR(20) NOT NULL UNIQUE,
+        is_used BOOLEAN DEFAULT false,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        used_at TIMESTAMP
+      )
+    `);
+    console.log('âœ" valid_roll_numbers table created');
+
+    // Create index on roll_number for fast lookup
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_valid_rolls ON valid_roll_numbers(roll_number)
+    `);
+    console.log('âœ" idx_valid_rolls index created');
+
+    // SECTION 3: Magic Links table for email verification, passwordless login, and password reset
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS magic_links (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token VARCHAR(512) NOT NULL UNIQUE,
+        type VARCHAR(30) NOT NULL CHECK (type IN ('email_verification', 'passwordless_login', 'password_reset')),
+        expires_at TIMESTAMP NOT NULL,
+        used BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('âœ" magic_links table created');
+
+    // Create indexes for magic_links table
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_magic_links_token ON magic_links(token)
+    `);
+    console.log('âœ" idx_magic_links_token index created');
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_magic_links_user ON magic_links(user_id)
+    `);
+    console.log('âœ" idx_magic_links_user index created');    console.log('\n✅ Migration completed successfully!');
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
     process.exit(1);
