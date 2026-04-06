@@ -53,8 +53,16 @@ pool.connect((err, client, release) => {
 });
 
 // ✅ SECURITY: Apply helmet before all routes
-app.use(helmet());
-
+  // Whitelist trusted CDNs: Google Fonts, Font Awesome, Chart.js
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+      },
+    },
+  }));
 // ✅ CRITICAL: CORS with restricted origins (not all)
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://localhost:3000',
@@ -140,7 +148,21 @@ const checkRole = (required) => (req, res, next) => {
 // Alias for authorize — wraps checkRole for convenience
 const authorize = checkRole;
 
-// === MULTER FILE UPLOAD CONFIGURATION ===
+  // Validate student domain middleware - enforces college email for students
+  const validateStudentDomain = (req, res, next) => {
+    const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN || '@stvincentngp.edu.in';
+    const email = req.body.email;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    
+    if (!email.endsWith(allowedDomain)) {
+      return res.status(403).json({ error: `Only emails with ${allowedDomain} domain are allowed for students` });
+    }
+    
+    next();
+  };
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -439,6 +461,395 @@ app.get('/api/auth/me', verifyToken, (req, res) => {
   });
 });
 
+// ===== STUDENT AUTHENTICATION =====
+
+// POST /api/auth/student-signup - Register new student
+app.post('/api/auth/student-signup', authLimiter, validateStudentDomain, asyncHandler(async (req, res) => {
+  const { name, email, uid, password } = req.body;
+
+  // Validate inputs
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  if (!uid || uid.trim().length === 0) {
+    return res.status(400).json({ error: 'Username (UID) is required' });
+  }
+  if (!name || name.trim().length < 2) {
+    return res.status(400).json({ error: 'Name must be at least 2 characters' });
+  }
+  if (!password || password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  try {
+    // Check if email already exists
+    const emailCheck = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+    if (emailCheck.rows.length > 0) {
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+
+    // Check if UID already exists
+    const uidCheck = await pool.query(
+      'SELECT id FROM users WHERE roll_number = $1',
+      [uid]
+    );
+    if (uidCheck.rows.length > 0) {
+      return res.status(409).json({ error: 'Username already taken' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert student
+    const result = await pool.query(
+      `INSERT INTO users (name, email, roll_number, password, role, is_verified, created_at)
+       VALUES ($1, $2, $3, $4, 'student', true, NOW())
+       RETURNING id, name, email, roll_number, role`,
+      [name, email, uid, hashedPassword]
+    );
+
+    const student = result.rows[0];
+
+    // Issue JWT
+    const token = jwt.sign(
+      { id: student.id, email: student.email, role: 'student', name: student.name },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
+
+    console.log('✅ Student signup:', student.email);
+    res.status(201).json({
+      success: true,
+      message: 'Student account created successfully',
+      user: { id: student.id, name: student.name, email: student.email, uid: student.roll_number, role: 'student' },
+      token
+    });
+
+  } catch (error) {
+    console.error('Student signup error:', error.message);
+    res.status(500).json({ error: 'Failed to create account' });
+  }
+}));
+
+// POST /api/auth/student-login - Student login
+app.post('/api/auth/student-login', authLimiter, validateStudentDomain, asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  try {
+    // Find student by email
+    const result = await pool.query(
+      'SELECT id, name, email, roll_number, password, role FROM users WHERE email = $1 AND role = $2',
+      [email, 'student']
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const student = result.rows[0];
+
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, student.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Issue JWT
+    const token = jwt.sign(
+      { id: student.id, email: student.email, role: 'student', name: student.name },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
+
+    console.log('✅ Student login:', student.email);
+    res.json({
+      success: true,
+      message: 'Logged in successfully',
+      user: { id: student.id, name: student.name, email: student.email, uid: student.roll_number, role: 'student' },
+      token
+    });
+
+  } catch (error) {
+    console.error('Student login error:', error.message);
+    res.status(500).json({ error: 'Login failed' });
+  }
+}));
+
+// ===== TEACHER AUTHENTICATION =====
+
+// POST /api/auth/teacher-login - Teacher login
+app.post('/api/auth/teacher-login', authLimiter, asyncHandler(async (req, res) => {
+  const { uid, password } = req.body;
+
+  if (!uid || !password) {
+    return res.status(400).json({ error: 'UID and password are required' });
+  }
+
+  try {
+    // Find teacher by UID (roll_number)
+    const result = await pool.query(
+      'SELECT id, name, email, roll_number, password, role FROM users WHERE roll_number = $1 AND role = $2',
+      [uid, 'teacher']
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid UID or password' });
+    }
+
+    const teacher = result.rows[0];
+
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, teacher.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Invalid UID or password' });
+    }
+
+    // Issue JWT
+    const token = jwt.sign(
+      { id: teacher.id, email: teacher.email, role: 'teacher', name: teacher.name },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
+
+    console.log('✅ Teacher login:', teacher.email);
+    res.json({
+      success: true,
+      message: 'Logged in successfully',
+      user: { id: teacher.id, name: teacher.name, email: teacher.email, uid: teacher.roll_number, role: 'teacher' },
+      token
+    });
+
+  } catch (error) {
+    console.error('Teacher login error:', error.message);
+    res.status(500).json({ error: 'Login failed' });
+  }
+}));
+
+// ===== ADMIN AUTHENTICATION =====
+
+// POST /api/auth/admin-login - Admin login with secret key
+app.post('/api/auth/admin-login', authLimiter, asyncHandler(async (req, res) => {
+  const { admin_id, password, secret_key } = req.body;
+
+  if (!admin_id || !password || !secret_key) {
+    return res.status(400).json({ error: 'Admin ID, password, and secret key are required' });
+  }
+
+  try {
+    // Verify secret key
+    const expectedSecret = process.env.ADMIN_SECRET_KEY;
+    if (!expectedSecret || secret_key !== expectedSecret) {
+      return res.status(401).json({ error: 'Invalid secret key' });
+    }
+
+    // Find admin by email
+    const result = await pool.query(
+      'SELECT id, name, email, password, role FROM users WHERE email = $1 AND role = $2',
+      [admin_id, 'admin']
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid admin credentials' });
+    }
+
+    const admin = result.rows[0];
+
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, admin.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Invalid admin credentials' });
+    }
+
+    // Issue JWT
+    const token = jwt.sign(
+      { id: admin.id, email: admin.email, role: 'admin', name: admin.name },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
+
+    console.log('✅ Admin login:', admin.email);
+    res.json({
+      success: true,
+      message: 'Admin login successful',
+      user: { id: admin.id, name: admin.name, email: admin.email, role: 'admin' },
+      token
+    });
+
+  } catch (error) {
+    console.error('Admin login error:', error.message);
+    res.status(500).json({ error: 'Login failed' });
+  }
+}));
+
+// ===== TEACHER MANAGEMENT (Admin Only) =====
+
+// POST /api/teachers/create - Create new teacher (Admin only)
+app.post('/api/teachers/create', verifyToken, checkRole('admin'), asyncHandler(async (req, res) => {
+  const { uid, name, email, password } = req.body;
+
+  // Validate inputs
+  if (!uid || uid.trim().length === 0) {
+    return res.status(400).json({ error: 'UID is required' });
+  }
+  if (!/^[a-zA-Z0-9_-]+$/.test(uid)) {
+    return res.status(400).json({ error: 'UID must contain only letters, numbers, underscore, or dash' });
+  }
+  if (!name || name.trim().length < 2) {
+    return res.status(400).json({ error: 'Name must be at least 2 characters' });
+  }
+  if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  if (!password || password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  try {
+    // Check if UID already taken
+    const uidCheck = await pool.query(
+      'SELECT id FROM users WHERE roll_number = $1',
+      [uid]
+    );
+    if (uidCheck.rows.length > 0) {
+      return res.status(409).json({ error: 'UID already taken' });
+    }
+
+    // Check if email already registered
+    const emailCheck = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+    if (emailCheck.rows.length > 0) {
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert teacher
+    const result = await pool.query(
+      `INSERT INTO users (name, email, roll_number, password, role, is_verified, created_at)
+       VALUES ($1, $2, $3, $4, 'teacher', true, NOW())
+       RETURNING id, name, email, roll_number, role, created_at`,
+      [name, email, uid, hashedPassword]
+    );
+
+    const teacher = result.rows[0];
+
+    console.log('✅ Teacher created:', teacher.email);
+    res.status(201).json({
+      success: true,
+      message: 'Teacher created successfully',
+      teacher: {
+        id: teacher.id,
+        name: teacher.name,
+        email: teacher.email,
+        uid: teacher.roll_number,
+        role: teacher.role,
+        created_at: teacher.created_at
+      }
+    });
+
+  } catch (error) {
+    console.error('Teacher creation error:', error.message);
+    res.status(500).json({ error: 'Failed to create teacher' });
+  }
+}));
+
+// GET /api/teachers - List all teachers (Admin only)
+app.get('/api/teachers', verifyToken, checkRole('admin'), asyncHandler(async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, email, roll_number, role, created_at FROM users 
+       WHERE role = 'teacher' 
+       ORDER BY created_at DESC`
+    );
+
+    res.json({
+      success: true,
+      count: result.rows.length,
+      teachers: result.rows.map(t => ({
+        id: t.id,
+        name: t.name,
+        email: t.email,
+        uid: t.roll_number,
+        role: t.role,
+        created_at: t.created_at
+      }))
+    });
+
+  } catch (error) {
+    console.error('Get teachers error:', error.message);
+    res.status(500).json({ error: 'Failed to fetch teachers' });
+  }
+}));
+
+// DELETE /api/teachers/:id - Delete teacher (Admin only)
+app.delete('/api/teachers/:id', verifyToken, checkRole('admin'), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      'DELETE FROM users WHERE id = $1 AND role = $2 RETURNING id, email',
+      [id, 'teacher']
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Teacher not found' });
+    }
+
+    console.log('✅ Teacher deleted:', result.rows[0].email);
+    res.json({ success: true, message: 'Teacher deleted successfully' });
+
+  } catch (error) {
+    console.error('Delete teacher error:', error.message);
+    res.status(500).json({ error: 'Failed to delete teacher' });
+  }
+}));
+
 // ===COURSES ROUTES ===
 
 // GET /api/courses/public - No auth required
@@ -620,6 +1031,49 @@ app.get('/api/courses/:id', verifyToken, async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   });
+
+  // GET /api/courses/:courseId/enrolled-students - Get enrolled students for a course (minimal info)
+app.get('/api/courses/:courseId/enrolled-students', verifyToken, async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    // Verify teacher owns this course or user is admin
+    const courseResult = await pool.query(
+      'SELECT teacher_id FROM courses WHERE id = $1',
+      [courseId]
+    );
+
+    if (courseResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Check authorization (teacher of course or admin)
+    const course = courseResult.rows[0];
+    if (req.user.role === 'teacher' && req.user.id !== course.teacher_id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Get enrolled students with name and roll_number only
+    const studentsResult = await pool.query(
+      `SELECT 
+        users.id as student_id,
+        users.name,
+        users.roll_number,
+        enrollments.enrolled_at
+      FROM enrollments
+      JOIN users ON enrollments.student_id = users.id
+      WHERE enrollments.course_id = $1
+      ORDER BY enrollments.enrolled_at DESC`,
+      [courseId]
+    );
+
+    res.json({
+      students: studentsResult.rows
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
   // GET /api/teacher/grades - Get all grade data for teacher's students
   app.get('/api/teacher/grades', verifyToken, async (req, res) => {

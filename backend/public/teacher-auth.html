@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Login - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-container {
+      max-width: 450px;
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+    }
+
+    .login-content {
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      color: #764ba2;
+      margin: 0 0 10px;
+    }
+
+    .header p {
+      color: #666;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #764ba2;
+    }
+
+    input.error {
+      border-color: #f56565;
+    }
+
+    .error-message {
+      color: #f56565;
+      font-size: 0.85rem;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 20px;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(118, 75, 162, 0.4);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .back-link a {
+      color: #764ba2;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .login-container {
+        padding: 30px 20px;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .submit-btn {
+        padding: 10px;
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-content">
+      <div class="header">
+        <h1>Teacher Login</h1>
+        <p>Sign in to your teacher dashboard</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="uid">Username (UID)</label>
+          <input 
+            type="text" 
+            id="uid" 
+            name="uid" 
+            placeholder="your.username"
+            required
+          >
+          <div class="error-message" id="uidError"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="Enter your password"
+            required
+          >
+          <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          Sign In
+        </button>
+      </form>
+
+      <div class="back-link">
+        <a href="index.html">← Back to Role Selection</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+  <script>
+    const form = document.getElementById('loginForm');
+    const uidInput = document.getElementById('uid');
+    const passwordInput = document.getElementById('password');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Handle form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Clear errors
+      ['uidError', 'passwordError'].forEach(id => {
+        document.getElementById(id).classList.remove('show');
+      });
+
+      // Get values
+      const uid = uidInput.value.trim();
+      const password = passwordInput.value;
+
+      // Validation
+      let isValid = true;
+
+      if (!uid) {
+        document.getElementById('uidError').textContent = 'Username is required';
+        document.getElementById('uidError').classList.add('show');
+        isValid = false;
+      }
+
+      if (!password) {
+        document.getElementById('passwordError').textContent = 'Password is required';
+        document.getElementById('passwordError').classList.add('show');
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      // Disable button
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in...';
+
+      try {
+        // Call login endpoint
+        const response = await fetch('/api/auth/teacher-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Login failed');
+        }
+
+        // ✅ Store token and user info
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('userId', data.user.id);
+          localStorage.setItem('userName', data.user.name);
+          localStorage.setItem('userRole', 'teacher');
+          localStorage.setItem('userEmail', data.user.email);
+        }
+
+        // ✅ Redirect to teacher dashboard
+        console.log('✅ Login successful, redirecting...');
+        window.location.href = '/teacher-dashboard.html';
+
+      } catch (error) {
+        console.error('Login error:', error);
+        document.getElementById('passwordError').textContent = 'Invalid username or password';
+        document.getElementById('passwordError').classList.add('show');
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+      }
+    });
+  </script>
+</body>
+</html>

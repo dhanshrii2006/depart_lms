@@ -286,6 +286,16 @@
             <div class="course-title">${course.title || 'Untitled Course'}</div>
             <div class="course-description">${course.description || 'No description provided'}</div>
             
+            <div style="background: var(--surface-highest); padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; font-size: 0.85rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                <span style="opacity: 0.7;">Invite Code:</span>
+                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                  <code style="font-weight: 600; letter-spacing: 1px; color: var(--primary);">${course.invite_code || 'N/A'}</code>
+                  <button onclick="event.stopPropagation(); copyToClipboard('${course.invite_code}'); return false;" style="padding: 0.25rem 0.5rem; background: var(--primary); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;"><i class="fas fa-copy" style="margin-right: 0.25rem;"></i>Copy</button>
+                </div>
+              </div>
+            </div>
+            
             <div class="course-stats">
               <div class="stat-box">
                 <div class="stat-number">${enrolled}</div>
@@ -429,6 +439,22 @@
     }
 
     loadCourses();
+
+    // Copy invite code to clipboard
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Invite code copied: ' + text);
+      }).catch(() => {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('Invite code copied: ' + text);
+      });
+    }
   </script>
 </body>
 </html>

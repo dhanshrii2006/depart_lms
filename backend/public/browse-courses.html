@@ -147,6 +147,53 @@
     }
 
     renderCourses(mockCourses);
+
+    // Enroll by invite code
+    async function enrollByInviteCode() {
+      const code = document.getElementById('inviteCodeInput').value.trim();
+      const messageDiv = document.getElementById('enrollmentMessage');
+
+      if (!code) {
+        messageDiv.textContent = '❌ Please enter an invite code';
+        messageDiv.style.color = '#ff6b6b';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/enrollments/join', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ invite_code: code })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          messageDiv.textContent = '❌ ' + (data.error || 'Failed to enroll');
+          messageDiv.style.color = '#ff6b6b';
+          return;
+        }
+
+        messageDiv.textContent = '✅ Successfully joined! Redirecting...';
+        messageDiv.style.color = '#51cf66';
+        document.getElementById('inviteCodeInput').value = '';
+
+        // Redirect to student dashboard after 1.5 seconds
+        setTimeout(() => {
+          window.location.href = 'student-dashboard.html';
+        }, 1500);
+      } catch (error) {
+        messageDiv.textContent = '❌ Error: ' + error.message;
+        messageDiv.style.color = '#ff6b6b';
+      }
+    }
+
+    // Allow Enter key to submit
+    document.getElementById('inviteCodeInput')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') enrollByInviteCode();
+    });
   </script>
 </body>
 </html>

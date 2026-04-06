@@ -27,7 +27,10 @@
       <header class="header">      
         <h1>Educator Terminal</h1> 
         <div class="user-info">    
-          <div class="user-avatar" id="userAvatar">T</div>
+          <div style="position: relative;">
+            <div class="user-avatar" id="userAvatar">T</div>
+            <div id="notificationBadge" style="display: none; position: absolute; top: -5px; right: -5px; background: #ff6b6b; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="markNotificationSeen(); updateEnrolledStudents();">0</div>
+          </div>
           <span id="userName" class="text-small font-weight-600">Teacher</span>
         </div>
       </header>
@@ -62,9 +65,12 @@
 
           <div style="margin-bottom: 1.5rem;">
             <label for="courseFilter" class="text-small" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Filter by Course:</label>
-            <select id="courseFilter" class="course-filter-select">
-              <option value="">All Courses</option>
-            </select>
+            <div style="display: flex; gap: 0.5rem;">
+              <select id="courseFilter" class="course-filter-select" onchange="filterEnrolledStudents()">
+                <option value="">All Courses</option>
+              </select>
+              <button onclick="refreshEnrolledStudents()" style="padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 500;">Refresh</button>
+            </div>
           </div>
           
           <div id="enrolledStudentsContainer" style="max-height: 600px; overflow-y: auto;">
@@ -246,19 +252,16 @@
     }
 
     function displayAllStudents(coursesData) {
-      let html = '<table class="students-table"><thead><tr><th>Student Name</th><th>Student ID</th></tr></thead><tbody>';
-      
+      if (coursesData.length === 0 || coursesData.every(c => c.students.length === 0)) {
+        document.getElementById('enrolledStudentsContainer').innerHTML = '<p class="text-muted text-small" style="text-align: center; padding: 2rem 0;">No students enrolled yet</p>';
+        return;
+      }
+      let html = '<table class="students-table"><thead><tr><th>Student Name</th><th>Roll Number</th></tr></thead><tbody>';
       coursesData.forEach(course => {
         course.students.forEach(student => {
-          html += `
-            <tr>
-              <td>${student.student_name}</td>
-              <td><span class="student-uid">${student.student_id}</span></td>
-            </tr>
-          `;
+          html += `<tr><td>${student.student_name}</td><td><span class="student-uid">${student.roll_number || 'N/A'}</span></td></tr>`;
         });
       });
-
       html += '</tbody></table>';
       document.getElementById('enrolledStudentsContainer').innerHTML = html;
     }
@@ -266,31 +269,41 @@
     function filterStudents() {
       const courseFilter = document.getElementById('courseFilter');
       const selectedCourseId = courseFilter.value;
-
       if (selectedCourseId === '') {
-        // Show all students
         displayAllStudents(allCoursesData);
       } else {
-        // Show students from selected course only
         const selectedCourse = allCoursesData.find(c => c.course_id == selectedCourseId);
         if (selectedCourse) {
-          let html = '<table class="students-table"><thead><tr><th>Student Name</th><th>Student ID</th></tr></thead><tbody>';
-          
+          let html = '<table class="students-table"><thead><tr><th>Student Name</th><th>Roll Number</th></tr></thead><tbody>';
           selectedCourse.students.forEach(student => {
-            html += `
-              <tr>
-                <td>${student.student_name}</td>
-                <td><span class="student-uid">${student.student_id}</span></td>
-              </tr>
-            `;
+            html += `<tr><td>${student.student_name}</td><td><span class="student-uid">${student.roll_number || 'N/A'}</span></td></tr>`;
           });
-
           html += '</tbody></table>';
           document.getElementById('enrolledStudentsContainer').innerHTML = html;
         }
       }
     }
 
+    function updateEnrolledStudents() {
+      loadEnrolledStudents();
+    }
+
+    function filterEnrolledStudents() {
+      filterStudents();
+    }
+
+    function refreshEnrolledStudents() {
+      updateEnrolledStudents();
+    }
+
+    function markNotificationSeen() {
+      const badge = document.getElementById('notificationBadge');
+      if (badge) badge.style.display = 'none';
+    }
+
+    // Initialize notification badgeif (typeof updateNotificationBadge === 'function') updateNotificationBadge();
+    
+    loadCourses();
     loadEnrolledStudents();
   </script>
 </body>

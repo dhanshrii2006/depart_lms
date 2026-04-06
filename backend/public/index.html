@@ -3,97 +3,232 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">        
-  <title>Acadify | Professional LMS Login</title>
+  <title>Acadify | Choose Your Role</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .role-selection-container {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+      padding: 1rem;
+    }
+
+    .role-selection-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 900px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+    }
+
+    .role-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .role-header h1 {
+      font-size: 2.5rem;
+      color: #1f2937;
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .role-header p {
+      color: #6b7280;
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+    }
+
+    .role-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .role-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .role-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 180px;
+    }
+
+    .role-card:hover {
+      background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+      border-color: #3b82f6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    }
+
+    .role-card-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0.5rem 0;
+    }
+
+    .role-card-desc {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin: 0.5rem 0 0 0;
+    }
+
+    .role-footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: #dc2626;
+    }
+
+    .user-info {
+      position: absolute;
+      top: 2rem;
+      left: 2rem;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+
+    body.role-selection-container {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    }
+  </style>
 </head>
-<body class="login-container">
-  <div class="login-card glass-card">
-    <div class="login-header">
+<body class="role-selection-container">
+  <div id="userInfo" class="user-info" style="display: none;">
+    <span id="userEmail"></span>
+  </div>
+
+  <button id="logoutBtn" class="logout-btn" style="display: none;">Logout</button>
+
+  <div class="role-selection-card">
+    <div class="role-header">
       <h1>Acadify</h1>
-      <p class="text-muted">High-Fidelity Learning Environment</p>
+      <p>Choose Your Role</p>
     </div>
 
-    <div id="errorMessage" class="mb-4" style="color: var(--error); border-radius: 0.5rem; display: none;"></div>
+    <div class="role-options">
+      <!-- Student Card -->
+      <a href="student-signup.html" class="role-card" id="studentCard">
+        <div class="role-card-title">STUDENT</div>
+        <div class="role-card-desc">Sign up and access courses</div>
+      </a>
 
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="email@acadify.dev" required>
-      </div>
+      <!-- Teacher Card -->
+      <a href="teacher-auth.html" class="role-card" id="teacherCard">
+        <div class="role-card-title">TEACHER</div>
+        <div class="role-card-desc">Manage courses and students</div>
+      </a>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="•••••••••" required>
-      </div>
+      <!-- Admin Card -->
+      <a href="admin-login.html" class="role-card" id="adminCard">
+        <div class="role-card-title">ADMIN</div>
+        <div class="role-card-desc">System administration</div>
+      </a>
+    </div>
 
-      <button type="submit" class="btn btn-primary" style="width: 100%; height: 3.5rem;">
-        <span id="buttonText">Continue to Platform</span>
-      </button>
-    </form>
+    <div class="role-footer">
+      <p id="footerText">New to Acadify? Choose your role above to get started</p>
+    </div>
+  </div>
 
-    <div class="mt-4 text-center">     
-      <p class="mb-3" style="font-size: 0.9rem;"><strong>Quick Access Dashboards</strong></p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-        <button class="btn btn-primary" style="padding: 0.75rem; font-size: 0.9rem;" onclick="directAccess('student')">
-          <i class="fas fa-user-graduate"></i> Student
-        </button>
-        <button class="btn btn-primary" style="padding: 0.75rem; font-size: 0.9rem;" onclick="directAccess('teacher')">
-          <i class="fas fa-chalkboard-user"></i> Teacher
-        </button>
-        <button class="btn btn-primary" style="padding: 0.75rem; font-size: 0.9rem;" onclick="directAccess('admin')">
-          <i class="fas fa-shield-halved"></i> Admin
-        </button>
+  <script>
+    // Check if user is already logged in
+    async function checkLoggedInStatus() {
+      try {
+        const response = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          const user = await response.json();
+          const userInfo = document.getElementById('userInfo');
+          const userEmail = document.getElementById('userEmail');
+          const logoutBtn = document.getElementById('logoutBtn');
+          const footerText = document.getElementById('footerText');
+
+          userEmail.textContent = `Logged in as: ${user.email}`;
+          userInfo.style.display = 'block';
+          logoutBtn.style.display = 'block';
+          footerText.textContent = 'You are already logged in. Select a role to switch, or logout.';
+
+          logoutBtn.addEventListener('click', logout);
+        }
+      } catch (error) {
+        console.log('User not logged in');
+      }
+    }
+
+    async function logout() {
+      try {
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          document.getElementById('userInfo').style.display = 'none';
+          document.getElementById('logoutBtn').style.display = 'none';
+          document.getElementById('footerText').textContent = 'New to Acadify? Choose your role above to get started';
+          alert('Logged out successfully');
+        }
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert('Error logging out');
+      }
+    }
+
+    // Check login status on page load
+    document.addEventListener('DOMContentLoaded', checkLoggedInStatus);
+  </script>
+</body>
+</html>
       </div>
     </div>
   </div>
 
   <script src="api.js"></script>
-  <script>
-    function directAccess(role) {
-      const credentials = {
-        student: { email: 'student@acadify.dev', password: 'password123' },
-        teacher: { email: 'teacher@acadify.dev', password: 'password123' },
-        admin: { email: 'admin@acadify.dev', password: 'password123' }
-      };
-      const { email, password } = credentials[role];
-      login(email, password);
-    }
-
-    async function login(email, password) {
-      const errorDiv = document.getElementById('errorMessage');
-      const submitBtn = document.querySelector('button[type="submit"]');
-      const buttonText = document.getElementById('buttonText');
-      errorDiv.style.display = 'none';
-      submitBtn.disabled = true;
-      buttonText.textContent = 'Verifying...';
-      try {
-        const response = await authAPI.login(email, password);
-        localStorage.setItem('userId', response.user.id);
-        localStorage.setItem('userName', response.user.name);
-        localStorage.setItem('userEmail', response.user.email);
-        localStorage.setItem('userRole', response.user.role);
-        if (response.token) localStorage.setItem('authToken', response.token);  
-        const roleRedirect = {
-          'student': 'student-dashboard.html',
-          'teacher': 'teacher-dashboard.html',
-          'admin': 'admin-dashboard.html'
-        };
-        window.location.href = roleRedirect[response.user.role] || 'student-dashboard.html';
-      } catch (error) {
-        errorDiv.textContent = error.message;
-        errorDiv.style.display = 'block';
-        submitBtn.disabled = false;
-        buttonText.textContent = 'Continue to Platform';
-      }
-    }
-
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      login(email, password);
-    });
-  </script>
-</body>
+  <script src="login.js"></script>
 </html>
