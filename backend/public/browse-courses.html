@@ -9,17 +9,7 @@
 </head>
 <body>
   <div class="layout">
-    <aside class="sidebar">
-      <div class="sidebar-logo">Acadify</div>
-      <ul class="sidebar-menu">
-        <li><a href="student-dashboard.html"><i class="fas fa-th-large mr-2"></i> Dashboard</a></li>
-        <li><a href="my-courses.html"><i class="fas fa-book mr-2"></i> My Library</a></li>
-        <li><a href="browse-courses.html" class="active"><i class="fas fa-search mr-2"></i> Explore</a></li>
-        <li><a href="progress.html"><i class="fas fa-chart-line mr-2"></i> Analytics</a></li>
-        <li><a href="settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
-        <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt mr-2"></i> Exit</a></li>
-      </ul>
-    </aside>
+    <!-- Navbar will be injected by navbar.js -->
 
     <main class="main-content">
       <header class="header">
@@ -78,6 +68,7 @@
     }
   </style>
 
+  <script src="navbar.js"></script>
   <script src="auth.js"></script>
   <script src="api.js"></script>
   <script>
@@ -112,7 +103,7 @@
               <span class="rating"><i class="fas fa-star mr-1"></i> ${course.rating}</span>
               <span><i class="fas fa-user-graduate mr-1"></i> ${course.students} Learners</span>
             </div>
-            <button class="btn btn-primary btn-block mt-3" onclick="enrollCourse('${course.title}')">
+            <button class="btn btn-primary btn-block mt-3" onclick="enrollCourse('${course.id}', '${course.title}')">
               Join Cohort
             </button>
           </div>
@@ -121,27 +112,21 @@
       }
     }
 
-    async function enrollCourse(courseTitle) {
-       const code = prompt('Enter enrollment key for: ' + courseTitle);
-       if (!code) return;
-       
-       try {
-           const response = await enrollmentsAPI.join(code);
-           if (response.error) {
-               alert('Error: ' + response.error);
-               return;
-           }
-           alert('Successfully enrolled in ' + courseTitle + '!');
-           // Refresh courses list
-           loadCourses();
-       } catch (error) {
-           console.error('Error:', error);
-           if (error.message.includes('Invalid invite code')) {
-               alert('Invalid enrollment key. Please check the key and try again.');
-           } else if (error.message.includes('already')) {
-               alert('You are already enrolled in this course.');
-           } else {
-               alert('Error enrolling in course: ' + error.message);
+async function enrollCourse(courseId, courseTitle) {
+   try {
+       const response = await enrollmentsAPI.join(courseId);
+       if (response.error) {
+           alert('Error: ' + response.error);
+           return;
+       }
+       alert(`Successfully joined ${courseTitle}!`);
+       loadCourses();
+   } catch (error) {
+       console.error('Error:', error);
+       if (error.message.includes('already')) {
+           alert('You are already enrolled in this course.');
+       } else {
+           alert('Error joining course: ' + error.message);
            }
        }
     }
@@ -149,51 +134,11 @@
     renderCourses(mockCourses);
 
     // Enroll by invite code
-    async function enrollByInviteCode() {
-      const code = document.getElementById('inviteCodeInput').value.trim();
-      const messageDiv = document.getElementById('enrollmentMessage');
-
-      if (!code) {
-        messageDiv.textContent = '❌ Please enter an invite code';
-        messageDiv.style.color = '#ff6b6b';
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/enrollments/join', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ invite_code: code })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          messageDiv.textContent = '❌ ' + (data.error || 'Failed to enroll');
-          messageDiv.style.color = '#ff6b6b';
-          return;
-        }
-
-        messageDiv.textContent = '✅ Successfully joined! Redirecting...';
-        messageDiv.style.color = '#51cf66';
-        document.getElementById('inviteCodeInput').value = '';
-
-        // Redirect to student dashboard after 1.5 seconds
-        setTimeout(() => {
-          window.location.href = 'student-dashboard.html';
-        }, 1500);
-      } catch (error) {
-        messageDiv.textContent = '❌ Error: ' + error.message;
-        messageDiv.style.color = '#ff6b6b';
-      }
-    }
+    // Enrollment key system removed - replaced with cohort-based joining
+    // Previous enrollByInviteCode() function has been replaced with cohort selection
 
     // Allow Enter key to submit
-    document.getElementById('inviteCodeInput')?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') enrollByInviteCode();
-    });
+    // Event listener removed - cohort system uses inline onclick handlers instead
   </script>
 </body>
 </html>

@@ -449,18 +449,7 @@
 </head>
 <body>
   <div class="layout">
-    <aside class="sidebar">
-      <div class="sidebar-logo">📚 Acadify</div>
-      <ul class="sidebar-menu">
-        <li><a href="student-dashboard.html">Dashboard</a></li>
-        <li><a href="my-courses.html">My Courses</a></li>
-        <li><a href="browse-courses.html">Browse Courses</a></li>
-        <li><a href="progress.html">Progress</a></li>
-        <li><a href="calendar.html" class="active">Calendar</a></li>
-        <li><a href="settings.html">Settings</a></li>
-        <li><a href="#" onclick="logout(); return false;">Logout</a></li>       
-      </ul>
-    </aside>
+<!-- Navbar will be injected by navbar.js -->
 
     <main class="main-content">
       <header class="header">
@@ -577,7 +566,8 @@
     </main>
   </div>
 
-  <script src="auth.js"></script>
+  <script src="navbar.js"></script>
+  <script src="auth.js"</script>
   <script src="api.js"></script>
   <script>
     checkAuth('student');
@@ -841,3 +831,5 @@
   </script>
 </body>
 </html>
+
+

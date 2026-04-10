@@ -57,9 +57,14 @@ pool.connect((err, client, release) => {
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-hashes'", "https://cdn.jsdelivr.net"],
+        scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+        connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+        imgSrc: ["'self'", "data:"],
+        frameSrc: ["'self'", "https://youtube.com", "https://www.youtube.com", "https://*.youtube.com"],
       },
     },
   }));
@@ -1174,6 +1179,48 @@ app.post('/api/enrollments/join', verifyToken, checkRole('student'), async (req,
     }
 
     const courseId = courseResult.rows[0].id;
+
+    // Check if already enrolled
+    const existingEnrollment = await pool.query(
+      'SELECT id FROM enrollments WHERE student_id = $1 AND course_id = $2',
+      [req.user.id, courseId]
+    );
+
+    if (existingEnrollment.rows.length > 0) {
+      return res.status(400).json({ error: 'Already enrolled in this course' });
+    }
+
+    // Create enrollment
+    const result = await pool.query(
+      `INSERT INTO enrollments (student_id, course_id)
+       VALUES ($1, $2)
+       RETURNING *`,
+      [req.user.id, courseId]
+    );
+
+    res.status(201).json({
+      message: 'Enrolled successfully',
+      enrollment: result.rows[0]
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/courses/:courseId/enroll - Auto-enroll student in course (no invite code required)
+app.post('/api/courses/:courseId/enroll', verifyToken, checkRole('student'), async (req, res) => {
+  try {
+    const courseId = req.params.courseId;
+
+    // Check if course exists
+    const courseResult = await pool.query(
+      'SELECT id FROM courses WHERE id = $1',
+      [courseId]
+    );
+
+    if (courseResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
 
     // Check if already enrolled
     const existingEnrollment = await pool.query(

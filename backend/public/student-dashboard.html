@@ -6,22 +6,11 @@
   <title>Student Dashboard | Acadify</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="chart.js"></script>
 </head>
 <body>
   <div class="layout">
-    <aside class="sidebar">
-      <div class="sidebar-logo">Acadify</div>
-      <ul class="sidebar-menu">
-        <li><a href="student-dashboard.html" class="active"><i class="fas fa-th-large mr-2"></i> Dashboard</a></li>
-        <li><a href="my-courses.html"><i class="fas fa-book mr-2"></i> My Library</a></li>
-        <li><a href="browse-courses.html"><i class="fas fa-search mr-2"></i> Explore</a></li>
-        <li><a href="progress.html"><i class="fas fa-chart-line mr-2"></i> Analytics</a></li>
-        <li><a href="calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
-        <li><a href="settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
-        <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt mr-2"></i> Exit</a></li>
-      </ul>
-    </aside>
+    <!-- Navbar will be injected by navbar.js -->
 
     <main class="main-content">
       <header class="header">
@@ -81,7 +70,7 @@
               <div class="flex-row justify-between mb-3">
                 <span class="text-small opacity-60">65% Complete</span>
               </div>
-              <button class="btn btn-primary btn-block" onclick="window.location.href='lesson.html'">Resume Session</button>
+              <button class="btn btn-primary btn-block resumeBtn">Resume Session</button>
             </div>
           </div>
 
@@ -96,7 +85,7 @@
               <div class="flex-row justify-between mb-3">
                 <span class="text-small opacity-60">42% Complete</span>
               </div>
-              <button class="btn btn-primary btn-block" onclick="window.location.href='lesson.html'">Resume Session</button>
+              <button class="btn btn-primary btn-block resumeBtn">Resume Session</button>
             </div>
           </div>
         </div>
@@ -112,9 +101,35 @@
     .btn-block { width: 100%; display: block; }
   </style>
 
+  <script src="navbar.js"></script>
   <script src="auth.js"></script>
   <script>
     checkAuth('student');
+
+    // Wait for navbar to be injected before attaching event listeners
+    function attachEventListeners() {
+      const logoutLink = document.getElementById('logoutLink');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          logout();
+        });
+      }
+
+      document.querySelectorAll('.resumeBtn').forEach(button => {
+        button.addEventListener('click', () => {
+          window.location.href = 'lesson.html';
+        });
+      });
+    }
+
+    // Attach listeners when DOM is ready (after navbar.js injects)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attachEventListeners);
+    } else {
+      // If already loaded, use setTimeout to ensure navbar is injected
+      setTimeout(attachEventListeners, 100);
+    }
 
     // Update user info
     const name = getUserName();
