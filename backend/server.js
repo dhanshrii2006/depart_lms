@@ -1772,6 +1772,35 @@ app.patch('/api/assignments/:id/submissions/:submissionId', verifyToken, checkRo
   }
 });
 
+// GET /api/assignments/:id/submissions/:submissionId/history - Get submission history
+app.get('/api/assignments/:id/submissions/:submissionId/history', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { id, submissionId } = req.params;
+
+    // Verify teacher owns assignment
+    const assignmentCheck = await pool.query(
+      'SELECT id FROM assignments WHERE id = $1 AND teacher_id = $2',
+      [id, req.user.id]
+    );
+
+    if (assignmentCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Assignment not found or access denied' });
+    }
+
+    // Get submission history for this submission
+    const history = await pool.query(
+      `SELECT id, submission_link, submitted_at, created_at FROM submission_history 
+       WHERE submission_id = $1 AND assignment_id = $2
+       ORDER BY created_at DESC`,
+      [submissionId, id]
+    );
+
+    res.json(history.rows || []);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/templates - Get teacher's saved templates
 app.get('/api/templates', verifyToken, checkRole('teacher'), async (req, res) => {
   try {
@@ -1923,6 +1952,21 @@ app.post('/api/assignments/:id/submit', verifyToken, checkRole('student'), async
     );
 
     if (existingSubmission.rows.length > 0) {
+      // Save current submission to history before updating
+      const submissionToArchive = existingSubmission.rows[0];
+      const submissionRecord = await pool.query(
+        `SELECT submission_link, submitted_at FROM assignment_submissions WHERE id = $1`,
+        [submissionToArchive.id]
+      );
+      
+      if (submissionRecord.rows.length > 0) {
+        await pool.query(
+          `INSERT INTO submission_history (submission_id, assignment_id, student_id, submission_link, submitted_at)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [submissionToArchive.id, id, req.user.id, submissionRecord.rows[0].submission_link, submissionRecord.rows[0].submitted_at]
+        );
+      }
+
       // Update existing submission
       const result = await pool.query(
         `UPDATE assignment_submissions SET submission_link = $1, submitted_at = CURRENT_TIMESTAMP, status = 'submitted'
@@ -2629,6 +2673,23 @@ app.use((err, req, res, next) => {
 // === START SERVER ===
 
 const PORT = process.env.PORT || 4000;
+
+// Initialize submission_history table if it doesn't exist
+pool.query(`
+  CREATE TABLE IF NOT EXISTS submission_history (
+    id SERIAL PRIMARY KEY,
+    submission_id INTEGER,
+    assignment_id UUID NOT NULL,
+    student_id UUID NOT NULL,
+    submission_link TEXT NOT NULL,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (assignment_id) REFERENCES assignments(id),
+    FOREIGN KEY (student_id) REFERENCES users(id)
+  );
+  CREATE INDEX IF NOT EXISTS idx_submission_history_submission ON submission_history(submission_id);
+  CREATE INDEX IF NOT EXISTS idx_submission_history_student ON submission_history(student_id, assignment_id);
+`).catch(err => console.error('Error creating submission_history table:', err));
 
 app.listen(PORT, () => {
   console.log(`✅ Acadify server running on http://localhost:${PORT}`);

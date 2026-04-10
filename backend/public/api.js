@@ -184,20 +184,36 @@ const assignmentsAPI = {
     }
   },
 
-  // Grade submission
-  gradeSubmission: async (submissionId, percentage) => {
+  // Grade submission - Teacher grades a student submission
+  gradeSubmission: async (assignmentId, submissionId, points_given) => {
     try {
-      const response = await fetch(`${API_BASE}/api/assignments/${submissionId}/grade`, {
+      const response = await fetch(`${API_BASE}/api/assignments/${assignmentId}/submissions/${submissionId}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ percentage })
+        body: JSON.stringify({ points_given })
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
       console.error('Error grading submission:', error);
       throw error;
+    }
+  },
+
+  // Get submission history - All resubmissions for a student
+  getSubmissionHistory: async (assignmentId, submissionId) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/assignments/${assignmentId}/submissions/${submissionId}/history`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching submission history:', error);
+      return [];
     }
   }
 };

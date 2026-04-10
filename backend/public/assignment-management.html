@@ -516,39 +516,8 @@
     }
 
     async function viewSubmissions(assignmentId) {
-      try {
-        const submissions = await assignmentsAPI.getSubmissions(assignmentId);
-        const assignment = allAssignments.find(a => a.id === assignmentId);
-
-        let html = `<h3>${assignment.title}</h3>`;
-        html += `<table class="submissions-table"><thead><tr>
-                   <th>Student Name</th>
-                   <th>Submission Link</th>
-                   <th>Submitted Date</th>
-                   <th>Points</th>
-                   <th>Action</th>
-                 </tr></thead><tbody>`;
-
-        submissions.forEach(sub => {
-          const submittedDate = sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString() : 'Not Submitted';
-          html += `<tr>
-                     <td>${sub.student_name}</td>
-                     <td><a href="${sub.submission_link}" target="_blank">View</a></td>
-                     <td>${submittedDate}</td>
-                     <td><input type="number" class="grade-input" value="${sub.points_given || ''}" id="grade-${sub.id}"></td>
-                     <td><button class="btn btn-small" onclick="saveGrade('${assignmentId}', '${sub.id}')">Save</button></td>
-                   </tr>`;
-        });
-
-        html += '</tbody></table>';
-
-        // Show in modal or new view
-        alert('Submissions view - check console for details');
-        console.log(submissions);
-      } catch (error) {
-        console.error('Error loading submissions:', error);
-        alert('Failed to load submissions: ' + error.message);
-      }
+      // Navigate to the assignment grading page with this assignment selected
+      window.location.href = `/assignment-grading.html?assignmentId=${assignmentId}`;
     }
 
     async function saveGrade(assignmentId, submissionId) {
