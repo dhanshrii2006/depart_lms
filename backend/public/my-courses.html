@@ -97,7 +97,7 @@
                 <div class="flex-row justify-between mb-3">
                   <span class="text-small opacity-60">${pct}% Mastery</span>
                 </div>
-                <button class="btn btn-primary btn-block">Resume Integration</button>
+                <button class="btn btn-primary btn-block" onclick="resumeCourse('${course.id}')">Resume Integration</button>
               </div>
             </div>
           `;
@@ -139,6 +139,11 @@
         messageDiv.style.color = 'var(--error)';
         messageDiv.style.display = 'block';
       }
+    }
+
+    function resumeCourse(courseId) {
+      // Navigate to course detail page
+      window.location.href = `course-detail.html?courseId=${courseId}`;
     }
 
     document.getElementById('inviteCodeInput').addEventListener('keypress', function(e) {

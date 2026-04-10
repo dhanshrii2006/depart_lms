@@ -3,6 +3,521 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Assignments - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .assignments-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .assignment-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .assignment-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+    }
+
+    .card-header h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+
+    .card-header .course-name {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .card-meta label {
+      color: #666;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .card-meta value {
+      color: #333;
+      font-size: 14px;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-not-due {
+      background-color: #e7f3ff;
+      color: #0066cc;
+    }
+
+    .status-due-soon {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .status-overdue {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-submitted {
+      background-color: #cfe2ff;
+      color: #084298;
+    }
+
+    .status-graded {
+      background-color: #d1e7dd;
+      color: #0f5132;
+    }
+
+    .grade-display {
+      font-size: 24px;
+      font-weight: 700;
+      color: #28a745;
+      text-align: center;
+      padding: 15px;
+      background-color: #f0f8f0;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background-color: #0066cc;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #0052a3;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+
+    .btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: 15px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      color: #ddd;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px;
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1><i class="fas fa-graduation-cap"></i> Acadify</h1>
+      </div>
+      <nav class="sidebar-nav">
+        <ul class="sidebar-menu">
+          <li><a href="/student-dashboard.html"><i class="fas fa-home mr-2"></i> Dashboard</a></li>
+          <li><a href="/my-courses-new.html"><i class="fas fa-book mr-2"></i> My Courses</a></li>
+          <li><a href="/student-assignments.html" class="active"><i class="fas fa-tasks mr-2"></i> Assignments</a></li>
+          <li><a href="/student-settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
+          <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-power-off mr-2"></i> Exit</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1><i class="fas fa-tasks mr-2"></i> My Assignments</h1>
+        <div class="user-info">
+          <span id="studentName">Student</span>
+          <div class="user-avatar" id="studentAvatar">S</div>
+        </div>
+      </header>
+
+      <div id="contentArea">
+        <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading assignments...</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Submit Modal -->
+  <div class="modal" id="submitModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Submit Assignment: <span id="modalAssignmentTitle"></span></h2>
+      </div>
+      <div class="form-group">
+        <label>Submission Link/URL</label>
+        <input type="url" id="submissionLink" placeholder="https://example.com/submission" required>
+      </div>
+      <div class="form-group" style="font-size: 13px; color: #666;">
+        <i class="fas fa-info-circle"></i> Enter the URL where your assignment work can be accessed (Google Drive link, GitHub link, etc.)
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeSubmitModal()">Cancel</button>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitAssignment()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+  <script src="navbar.js"></script>
+
+  <script>
+    let currentSubmitting = null;
+
+    async function loadAssignments() {
+      try {
+        const assignments = await studentAssignmentsAPI.list();
+        displayAssignments(assignments);
+      } catch (error) {
+        console.error('Error loading assignments:', error);
+        document.getElementById('contentArea').innerHTML = `
+          <div class="error">Failed to load assignments: ${error.message}</div>
+        `;
+      }
+    }
+
+    function getStatusBadge(assignment) {
+      const now = new Date();
+      const dueDate = new Date(assignment.due_date);
+      const daysUntilDue = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+
+      if (assignment.status === 'graded') {
+        return `<span class="status-indicator status-graded">✓ Graded</span>`;
+      } else if (assignment.status === 'submitted') {
+        return `<span class="status-indicator status-submitted">📤 Submitted</span>`;
+      } else if (now > dueDate) {
+        return `<span class="status-indicator status-overdue">Overdue</span>`;
+      } else if (daysUntilDue <= 1) {
+        return `<span class="status-indicator status-due-soon">Due Soon</span>`;
+      } else {
+        return `<span class="status-indicator status-not-due">Not Due</span>`;
+      }
+    }
+
+    function displayAssignments(assignments) {
+      const contentArea = document.getElementById('contentArea');
+
+      if (!assignments || assignments.length === 0) {
+        contentArea.innerHTML = `
+          <div class="empty-state">
+            <div><i class="fas fa-clipboard-list"></i></div>
+            <h2>No assignments yet</h2>
+            <p>Check back when your teachers create assignments for your courses</p>
+          </div>
+        `;
+        return;
+      }
+
+      const html = `
+        <div class="assignments-grid">
+          ${assignments.map(assignment => {
+            const now = new Date();
+            const dueDate = new Date(assignment.due_date);
+            const canSubmit = assignment.status !== 'submitted' && assignment.status !== 'graded' && now <= dueDate;
+
+            return `
+              <div class="assignment-card">
+                <div class="card-header">
+                  <h3>${assignment.title}</h3>
+                  <div class="course-name">${assignment.course_title || 'Course'}</div>
+                </div>
+                <div class="card-body">
+                  ${getStatusBadge(assignment)}
+                  
+                  <div class="card-meta">
+                    <label><i class="fas fa-calendar"></i> Due Date</label>
+                    <value>${new Date(assignment.due_date).toLocaleDateString()}</value>
+                  </div>
+
+                  ${assignment.description ? `
+                    <div class="card-meta">
+                      <label>Description</label>
+                      <value>${assignment.description}</value>
+                    </div>
+                  ` : ''}
+
+                  ${assignment.status === 'graded' && assignment.points_given ? `
+                    <div class="grade-display">
+                      ${assignment.points_given}%
+                    </div>
+                    <div style="font-size: 13px; color: #666; text-align: center;">
+                      <strong>Your Grade</strong>
+                    </div>
+                  ` : ''}
+
+                  ${assignment.status === 'submitted' && assignment.submission_link ? `
+                    <div class="card-meta">
+                      <label>Your Submission</label>
+                      <value>
+                        <a href="${assignment.submission_link}" target="_blank" style="color: #0066cc; text-decoration: none;">
+                          <i class="fas fa-external-link-alt"></i> View
+                        </a>
+                      </value>
+                    </div>
+                  ` : ''}
+
+                  <div class="card-actions">
+                    ${canSubmit ? `
+                      <button class="btn btn-primary" onclick="openSubmitModal('${assignment.id}', '${assignment.title.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-upload"></i> Submit
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      contentArea.innerHTML = html;
+    }
+
+    function openSubmitModal(assignmentId, title) {
+      currentSubmitting = { id: assignmentId, title };
+      document.getElementById('modalAssignmentTitle').textContent = title;
+      document.getElementById('submissionLink').value = '';
+      document.getElementById('submitModal').classList.add('active');
+      document.getElementById('submissionLink').focus();
+    }
+
+    function closeSubmitModal() {
+      document.getElementById('submitModal').classList.remove('active');
+      currentSubmitting = null;
+    }
+
+    async function submitAssignment() {
+      if (!currentSubmitting) return;
+
+      const link = document.getElementById('submissionLink').value.trim();
+      if (!link) {
+        alert('Please enter a submission link');
+        return;
+      }
+
+      if (!isValidUrl(link)) {
+        alert('Please enter a valid URL');
+        return;
+      }
+
+      try {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+        await studentAssignmentsAPI.submit(currentSubmitting.id, { submission_link: link });
+
+        closeSubmitModal();
+        showNotification('✓ Assignment submitted successfully!', 'success');
+        
+        // Reload assignments
+        setTimeout(() => {
+          loadAssignments();
+        }, 1000);
+      } catch (error) {
+        console.error('Error submitting assignment:', error);
+        alert(`Failed to submit: ${error.message}`);
+        
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Submit';
+      }
+    }
+
+    function isValidUrl(string) {
+      try {
+        new URL(string);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.className = type;
+      notification.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 2000;';
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeSubmitModal();
+      }
+    });
+
+    // Load assignments on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAssignments();
+    });
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Assignments | Acadify</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

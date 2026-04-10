@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Details - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .course-container {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .course-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+
+    .video-player {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .video-player iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .video-info {
+      margin-top: 1.5rem;
+    }
+
+    .video-info h2 {
+      margin-bottom: 0.5rem;
+      font-size: 1.5rem;
+    }
+
+    .video-meta {
+      display: flex;
+      gap: 2rem;
+      margin: 1rem 0;
+      color: #a0aec0;
+      font-size: 0.9rem;
+    }
+
+    .mark-watched-btn {
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: #48bb78;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .mark-watched-btn:hover {
+      opacity: 0.9;
+    }
+
+    .mark-watched-btn.completed {
+      background: #667eea;
+    }
+
+    .modules-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .modules-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding: 0 1rem;
+    }
+
+    .module {
+      background: #1a202c;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .module-header {
+      padding: 1rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .module-header:hover {
+      opacity: 0.9;
+    }
+
+    .module-toggle {
+      transition: transform 0.3s;
+    }
+
+    .module-toggle.open {
+      transform: rotate(180deg);
+    }
+
+    .videos-list {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .videos-list.open {
+      max-height: 800px;
+    }
+
+    .video-item {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid rgba(102, 126, 234, 0.1);
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .video-item:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .video-item.active {
+      background: rgba(102, 126, 234, 0.2);
+      border-left: 3px solid #667eea;
+    }
+
+    .video-item-icon {
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .video-item-icon.completed {
+      color: #48bb78;
+    }
+
+    .video-item-icon.pending {
+      color: #a0aec0;
+    }
+
+    .video-item-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .video-duration {
+      font-size: 0.8rem;
+      color: #a0aec0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #a0aec0;
+    }
+
+    .header-section {
+      margin-bottom: 2rem;
+    }
+
+    .header-section h1 {
+      margin-bottom: 0.5rem;
+    }
+
+    .header-section p {
+      color: #a0aec0;
+    }
+
+    .message {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .message.error {
+      background: rgba(245, 101, 101, 0.1);
+      border: 1px solid #f56565;
+      color: #fc8181;
+    }
+
+    .message.success {
+      background: rgba(72, 187, 120, 0.1);
+      border: 1px solid #48bb78;
+      color: #9ae6b4;
+      animation: fadeOut 3s forwards;
+    }
+
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <main class="main-content">
+      <header class="header">
+        <h1>Course Details</h1>
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">S</div>
+          <span class="text-small font-weight-600" id="userName">Student</span>
+        </div>
+      </header>
+
+      <div class="container-fluid">
+        <div id="errorMessage"></div>
+        <div id="successMessage"></div>
+
+        <div class="header-section">
+          <h1 id="courseTitle">Loading...</h1>
+          <p id="teacherName">By Teacher</p>
+          <p id="courseDescription" style="margin-top: 1rem; color: #a0aec0;"></p>
+        </div>
+
+        <div class="course-container">
+          <div class="main-content">
+            <div class="video-player" id="videoPlayerContainer" style="display: none;">
+              <iframe id="videoFrame"></iframe>
+            </div>
+            <div id="noVideoState" style="text-align: center; padding: 3rem;">
+              <div style="font-size: 3rem; margin-bottom: 1rem;">🎬</div>
+              <p>Select a video to watch</p>
+            </div>
+
+            <div class="video-info">
+              <h2 id="videoTitle">Course Content</h2>
+              <div class="video-meta">
+                <span id="videoDuration">-- min</span>
+                <span id="videoStatus">Not started</span>
+              </div>
+              <button class="mark-watched-btn" id="markWatchedBtn" onclick="markVideoAsWatched()" style="display: none;">Mark as Watched</button>
+            </div>
+          </div>
+
+          <div class="modules-sidebar">
+            <div class="modules-title">📚 Modules</div>
+            <div id="modulesList"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="navbar.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    checkAuth('student');
+
+    // Set user info
+    const userName = localStorage.getItem('userName') || 'Student';
+    const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+    document.getElementById('userName').textContent = userName;
+    document.getElementById('userAvatar').textContent = userInitials;
+
+    let courseData = null;
+    let currentVideoId = null;
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('courseId');
+
+    if (!courseId) {
+      showError('Course ID not provided');
+    } else {
+      loadCourseDetails();
+    }
+
+    async function loadCourseDetails() {
+      try {
+        const response = await fetch(`${API_BASE}/api/courses/${courseId}`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        courseData = await response.json();
+
+        document.getElementById('courseTitle').textContent = courseData.title || 'Untitled';
+        document.getElementById('teacherName').textContent = `By ${courseData.teacher_name || 'Teacher'}`;
+        document.getElementById('courseDescription').textContent = courseData.description || '';
+
+        renderModules(courseData.modules || []);
+        loadLastViewedVideo();
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Failed to load course: ' + error.message);
+      }
+    }
+
+    function renderModules(modules) {
+      const list = document.getElementById('modulesList');
+      
+      if (!modules.length) {
+        list.innerHTML = '<div class="empty-state">No modules yet</div>';
+        return;
+      }
+
+      list.innerHTML = modules.map(m => `
+        <div class="module">
+          <div class="module-header" onclick="toggleModule('${m.id}')">
+            <span>${m.title}</span>
+            <span class="module-toggle">▼</span>
+          </div>
+          <div class="videos-list" id="module-${m.id}">
+            ${(m.videos || []).map(v => `
+              <div class="video-item" onclick="playVideo('${v.id}', '${m.id}', '${v.title.replace(/'/g, "\\'")}', ${v.duration || 0})">
+                <div class="video-item-icon ${v.progress?.completed ? 'completed' : 'pending'}">
+                  ${v.progress?.completed ? '✓' : '○'}
+                </div>
+                <div class="video-item-title">${v.title}</div>
+                <div class="video-duration">${v.duration || 0}min</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      if (modules.length > 0) {
+        toggleModule(modules[0].id);
+      }
+    }
+
+    function toggleModule(moduleId) {
+      const list = document.getElementById(`module-${moduleId}`);
+      const toggle = list.previousElementSibling.querySelector('.module-toggle');
+      list.classList.toggle('open');
+      toggle.classList.toggle('open');
+    }
+
+    function playVideo(videoId, moduleId, title, duration) {
+      currentVideoId = videoId;
+      
+      const video = courseData.modules
+        .find(m => m.id === moduleId)?.videos
+        .find(v => v.id === videoId);
+
+      if (!video) return;
+
+      document.getElementById('videoPlayerContainer').style.display = 'block';
+      document.getElementById('noVideoState').style.display = 'none';
+      document.getElementById('videoFrame').src = video.embed_url || '';
+      document.getElementById('videoTitle').textContent = title;
+      document.getElementById('videoDuration').textContent = `${duration} min`;
+      document.getElementById('videoStatus').textContent = video.progress?.completed ? 'Completed' : 'In Progress';
+
+      const btn = document.getElementById('markWatchedBtn');
+      btn.style.display = 'block';
+      btn.textContent = video.progress?.completed ? '✓ Marked as Watched' : 'Mark as Watched';
+      btn.classList.toggle('completed', video.progress?.completed);
+
+      document.querySelectorAll('.video-item').forEach(el => el.classList.remove('active'));
+      event.target.closest('.video-item').classList.add('active');
+
+      localStorage.setItem(`lastViewedVideo_${courseId}`, videoId);
+    }
+
+    async function markVideoAsWatched() {
+      try {
+        await fetch(`${API_BASE}/api/videos/${currentVideoId}/progress`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ completed: true })
+        });
+
+        showSuccess('✓ Video marked as watched!');
+        setTimeout(() => loadCourseDetails(), 1000);
+      } catch (error) {
+        showError('Failed: ' + error.message);
+      }
+    }
+
+    function loadLastViewedVideo() {
+      const lastVideoId = localStorage.getItem(`lastViewedVideo_${courseId}`);
+      if (lastVideoId && courseData.modules) {
+        courseData.modules.forEach(m => {
+          const v = m.videos?.find(v => v.id === lastVideoId);
+          if (v) {
+            setTimeout(() => {
+              const item = document.querySelector(`[onclick*="${lastVideoId}"]`);
+              if (item) item.click();
+            }, 100);
+          }
+        });
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('errorMessage').innerHTML = `<div class="message error">${msg}</div>`;
+    }
+
+    function showSuccess(msg) {
+      document.getElementById('successMessage').innerHTML = `<div class="message success">${msg}</div>`;
+    }
+  </script>
+</body>
+</html>

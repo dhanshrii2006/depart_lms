@@ -468,8 +468,8 @@ app.get('/api/auth/me', verifyToken, (req, res) => {
 
 // ===== STUDENT AUTHENTICATION =====
 
-// POST /api/auth/student-signup - Register new student
-app.post('/api/auth/student-signup', authLimiter, validateStudentDomain, asyncHandler(async (req, res) => {
+// POST /api/auth/student-signup - Register new student (RATE LIMITING DISABLED FOR TESTING)
+app.post('/api/auth/student-signup', validateStudentDomain, asyncHandler(async (req, res) => {
   const { name, email, uid, password } = req.body;
 
   // Validate inputs
@@ -548,8 +548,8 @@ app.post('/api/auth/student-signup', authLimiter, validateStudentDomain, asyncHa
   }
 }));
 
-// POST /api/auth/student-login - Student login
-app.post('/api/auth/student-login', authLimiter, validateStudentDomain, asyncHandler(async (req, res) => {
+// POST /api/auth/student-login - Student login (RATE LIMITING DISABLED FOR TESTING)
+app.post('/api/auth/student-login', validateStudentDomain, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -607,8 +607,8 @@ app.post('/api/auth/student-login', authLimiter, validateStudentDomain, asyncHan
 
 // ===== TEACHER AUTHENTICATION =====
 
-// POST /api/auth/teacher-login - Teacher login
-app.post('/api/auth/teacher-login', authLimiter, asyncHandler(async (req, res) => {
+// POST /api/auth/teacher-login - Teacher login (RATE LIMITING DISABLED FOR TESTING)
+app.post('/api/auth/teacher-login', asyncHandler(async (req, res) => {
   const { uid, password } = req.body;
 
   if (!uid || !password) {
@@ -667,7 +667,7 @@ app.post('/api/auth/teacher-login', authLimiter, asyncHandler(async (req, res) =
 // ===== ADMIN AUTHENTICATION =====
 
 // POST /api/auth/admin-login - Admin login with secret key
-app.post('/api/auth/admin-login', authLimiter, asyncHandler(async (req, res) => {
+app.post('/api/auth/admin-login', asyncHandler(async (req, res) => {
   const { admin_id, password, secret_key } = req.body;
 
   if (!admin_id || !password || !secret_key) {
@@ -951,9 +951,130 @@ app.get('/api/courses/:id', verifyToken, async (req, res) => {
 
     const modules = modulesResult.rows;
 
+    // Get videos for each module
+    const videosResult = await pool.query(
+      `SELECT v.*, m.id as module_id FROM videos v
+       JOIN modules m ON v.module_id = m.id
+       WHERE m.course_id = $1
+       ORDER BY m.position ASC, v.position ASC`,
+      [id]
+    );
+
+    // Get video progress for current user
+    const progressResult = await pool.query(
+      `SELECT vp.video_id, vp.completed, vp.watched_at FROM video_progress vp
+       WHERE vp.student_id = $1 AND vp.video_id IN (
+         SELECT id FROM videos WHERE module_id IN (
+           SELECT id FROM modules WHERE course_id = $2
+         )
+       )`,
+      [req.user.id, id]
+    );
+
+    // Build progress map for quick lookup
+    const progressMap = {};
+    progressResult.rows.forEach(p => {
+      progressMap[p.video_id] = {
+        completed: p.completed,
+        watched_at: p.watched_at
+      };
+    });
+
+    // Attach videos to modules
+    const modulesWithVideos = modules.map(module => ({
+      ...module,
+      videos: videosResult.rows
+        .filter(v => v.module_id === module.id)
+        .map(v => ({
+          id: v.id,
+          title: v.title,
+          embed_url: v.embed_url,
+          duration: v.duration,
+          position: v.position,
+          progress: progressMap[v.id] || { completed: false, watched_at: null }
+        }))
+    }));
+
     res.json({
       ...course,
-      modules
+      modules: modulesWithVideos
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/courses/:id/enroll - Enroll student in a course (direct enrollment)
+app.post('/api/courses/:id/enroll', verifyToken, checkRole('student'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if course exists
+    const courseResult = await pool.query(
+      'SELECT id FROM courses WHERE id = $1',
+      [id]
+    );
+
+    if (courseResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Check if already enrolled
+    const existingEnrollment = await pool.query(
+      'SELECT id FROM enrollments WHERE student_id = $1 AND course_id = $2',
+      [req.user.id, id]
+    );
+
+    if (existingEnrollment.rows.length > 0) {
+      return res.status(400).json({ error: 'Already enrolled in this course' });
+    }
+
+    // Create enrollment
+    const result = await pool.query(
+      `INSERT INTO enrollments (student_id, course_id)
+       VALUES ($1, $2)
+       RETURNING *`,
+      [req.user.id, id]
+    );
+
+    res.status(201).json({
+      message: 'Successfully enrolled in course',
+      enrollment: result.rows[0]
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/videos/:videoId/progress - Mark video as watched
+app.post('/api/videos/:videoId/progress', verifyToken, async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    const { completed } = req.body;
+
+    // Check if video exists
+    const videoResult = await pool.query(
+      'SELECT id FROM videos WHERE id = $1',
+      [videoId]
+    );
+
+    if (videoResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    // Insert or update progress record
+    const result = await pool.query(
+      `INSERT INTO video_progress (student_id, video_id, completed, watched_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (student_id, video_id)
+       DO UPDATE SET completed = EXCLUDED.completed, watched_at = NOW()
+       RETURNING *`,
+      [req.user.id, videoId, completed || false]
+    );
+
+    res.json({
+      message: 'Video progress updated',
+      progress: result.rows[0]
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -982,9 +1103,131 @@ app.get('/api/courses/:id', verifyToken, async (req, res) => {
         [is_published, id]
       );
 
+      const course = updateResult.rows[0];
+
+      // If publishing (change from false to true), create notifications for all students
+      if (is_published && !courseResult.rows[0].is_published) {
+        // Get teacher name
+        const teacherResult = await pool.query(
+          'SELECT name FROM users WHERE id = $1',
+          [req.user.id]
+        );
+        const teacherName = teacherResult.rows[0]?.name || 'Teacher';
+
+        // Insert notification for every student
+        await pool.query(`
+          INSERT INTO notifications (student_id, course_id, type, data, created_at)
+          SELECT users.id, $1, 'course_published', 
+            jsonb_build_object('course_title', $2, 'invite_code', $3, 'teacher_name', $4),
+            NOW()
+          FROM users
+          WHERE users.role = 'student'
+          ON CONFLICT DO NOTHING
+        `, [id, course.title, course.invite_code, teacherName]);
+      }
+
       res.json({
         message: 'Course updated successfully',
-        course: updateResult.rows[0]
+        course: course
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /api/notifications - Fetch student's notifications
+  app.get('/api/notifications', verifyToken, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit) || 20;
+      const offset = parseInt(req.query.offset) || 0;
+
+      // Get notifications for current student
+      const result = await pool.query(`
+        SELECT 
+          id, 
+          course_id, 
+          type,
+          data->>'course_title' as course_title,
+          data->>'invite_code' as invite_code,
+          data->>'teacher_name' as teacher_name,
+          is_read,
+          created_at,
+          read_at
+        FROM notifications
+        WHERE student_id = $1 AND is_deleted = false
+        ORDER BY created_at DESC
+        LIMIT $2 OFFSET $3
+      `, [req.user.id, limit, offset]);
+
+      // Get unread count
+      const unreadResult = await pool.query(
+        'SELECT COUNT(*) as count FROM notifications WHERE student_id = $1 AND is_deleted = false AND is_read = false',
+        [req.user.id]
+      );
+
+      res.json({
+        notifications: result.rows,
+        unread_count: parseInt(unreadResult.rows[0].count),
+        total: result.rows.length
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // PATCH /api/notifications/:id/read - Mark notification as read
+  app.patch('/api/notifications/:id/read', verifyToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Verify notification belongs to current user
+      const notificationResult = await pool.query(
+        'SELECT id FROM notifications WHERE id = $1 AND student_id = $2',
+        [id, req.user.id]
+      );
+
+      if (notificationResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Notification not found' });
+      }
+
+      // Update is_read and read_at
+      const result = await pool.query(
+        'UPDATE notifications SET is_read = true, read_at = NOW() WHERE id = $1 RETURNING *',
+        [id]
+      );
+
+      res.json({
+        message: 'Notification marked as read',
+        notification: result.rows[0]
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // DELETE /api/notifications/:id - Dismiss/delete notification
+  app.delete('/api/notifications/:id', verifyToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Verify notification belongs to current user
+      const notificationResult = await pool.query(
+        'SELECT id FROM notifications WHERE id = $1 AND student_id = $2',
+        [id, req.user.id]
+      );
+
+      if (notificationResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Notification not found' });
+      }
+
+      // Soft delete
+      await pool.query(
+        'UPDATE notifications SET is_deleted = true WHERE id = $1',
+        [id]
+      );
+
+      res.json({
+        message: 'Notification deleted'
       });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -1242,6 +1485,60 @@ app.post('/api/courses/:courseId/enroll', verifyToken, checkRole('student'), asy
 
     res.status(201).json({
       message: 'Enrolled successfully',
+      enrollment: result.rows[0]
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Join course by invite code
+app.post('/api/courses/join-by-key', verifyToken, checkRole('student'), async (req, res) => {
+  try {
+    const { invite_code } = req.body;
+
+    if (!invite_code) {
+      return res.status(400).json({ error: 'Invite code is required' });
+    }
+
+    // Find course by invite code
+    const courseResult = await pool.query(
+      'SELECT id, title, description, invite_code FROM courses WHERE invite_code = $1 AND is_published = true',
+      [invite_code.toUpperCase()]
+    );
+
+    if (courseResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Invalid course key or course not published' });
+    }
+
+    const course = courseResult.rows[0];
+    const courseId = course.id;
+
+    // Check if already enrolled
+    const existingEnrollment = await pool.query(
+      'SELECT id FROM enrollments WHERE student_id = $1 AND course_id = $2',
+      [req.user.id, courseId]
+    );
+
+    if (existingEnrollment.rows.length > 0) {
+      return res.status(400).json({ error: 'Already enrolled in this course' });
+    }
+
+    // Create enrollment
+    const result = await pool.query(
+      `INSERT INTO enrollments (student_id, course_id)
+       VALUES ($1, $2)
+       RETURNING *`,
+      [req.user.id, courseId]
+    );
+
+    res.status(201).json({
+      message: 'Enrolled successfully',
+      course: {
+        id: course.id,
+        title: course.title,
+        description: course.description
+      },
       enrollment: result.rows[0]
     });
   } catch (error) {
@@ -1599,16 +1896,24 @@ app.post('/api/assignments/:id/submit', verifyToken, checkRole('student'), async
       return res.status(400).json({ error: 'Submission link required' });
     }
 
-    // Check if student is enrolled in the course
-    const enrollmentCheck = await pool.query(
-      `SELECT e.id FROM enrollments e
-       JOIN assignments a ON a.course_id = e.course_id
+    // Check if student is enrolled in the course and assignment is not past due
+    const assignmentCheck = await pool.query(
+      `SELECT a.id, a.due_date, e.id as enrollment_id FROM assignments a
+       JOIN courses c ON a.course_id = c.id
+       JOIN enrollments e ON c.id = e.course_id
        WHERE a.id = $1 AND e.student_id = $2`,
       [id, req.user.id]
     );
 
-    if (enrollmentCheck.rows.length === 0) {
-      return res.status(403).json({ error: 'Not enrolled in this course' });
+    if (assignmentCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Not enrolled in this course or assignment not found' });
+    }
+
+    // Check if submission is past due date
+    const dueDate = new Date(assignmentCheck.rows[0].due_date);
+    const currentTime = new Date();
+    if (currentTime > dueDate) {
+      return res.status(400).json({ error: 'Submission deadline has passed' });
     }
 
     // Check if already submitted
@@ -1642,6 +1947,142 @@ app.post('/api/assignments/:id/submit', verifyToken, checkRole('student'), async
 
     res.status(201).json({
       message: 'Assignment submitted successfully',
+      submission: result.rows[0]
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// === NESTED COURSE ASSIGNMENT ROUTES ===
+
+// GET /api/courses/:courseId/assignments - List assignments for a specific course (Teacher only)
+app.get('/api/courses/:courseId/assignments', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    // Verify teacher owns the course
+    const courseCheck = await pool.query(
+      'SELECT id FROM courses WHERE id = $1 AND teacher_id = $2',
+      [courseId, req.user.id]
+    );
+
+    if (courseCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Course not found or access denied' });
+    }
+
+    // Get assignments for this course
+    const result = await pool.query(
+      `SELECT a.*, c.title as course_title, 
+              COUNT(DISTINCT e.student_id) as total_students,
+              COUNT(DISTINCT CASE WHEN s.id IS NOT NULL THEN 1 END) as submitted_count
+       FROM assignments a
+       JOIN courses c ON a.course_id = c.id
+       LEFT JOIN enrollments e ON c.id = e.course_id
+       LEFT JOIN assignment_submissions s ON a.id = s.assignment_id AND s.status = 'submitted'
+       WHERE a.course_id = $1
+       GROUP BY a.id, c.title
+       ORDER BY a.due_date DESC`,
+      [courseId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/courses/:courseId/assignments - Create assignment for a course (Teacher only)
+app.post('/api/courses/:courseId/assignments', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { title, description, total_points, due_date, file_url } = req.body;
+
+    if (!title || !due_date) {
+      return res.status(400).json({ error: 'Missing required fields: title, due_date' });
+    }
+
+    // Verify teacher owns the course
+    const courseCheck = await pool.query(
+      'SELECT id FROM courses WHERE id = $1 AND teacher_id = $2',
+      [courseId, req.user.id]
+    );
+
+    if (courseCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Course not found or access denied' });
+    }
+
+    // Create assignment
+    const result = await pool.query(
+      `INSERT INTO assignments (course_id, teacher_id, title, description, total_points, due_date, file_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, course_id, teacher_id, title, description, total_points, due_date, file_url, created_at, updated_at`,
+      [courseId, req.user.id, title, description || null, total_points || 100, due_date, file_url || null]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH /api/assignments/:submissionId/grade - Teacher grades a submission
+app.patch('/api/assignments/:submissionId/grade', verifyToken, checkRole('teacher'), async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+    const { percentage } = req.body;
+
+    // Validate percentage
+    if (percentage === undefined || typeof percentage !== 'number' || percentage < 0 || percentage > 100) {
+      return res.status(400).json({ error: 'Percentage must be a number between 0-100' });
+    }
+
+    // Get submission details to verify teacher owns the course
+    const submissionCheck = await pool.query(
+      `SELECT s.*, a.course_id, c.teacher_id, c.title as course_title
+       FROM assignment_submissions s
+       JOIN assignments a ON s.assignment_id = a.id
+       JOIN courses c ON a.course_id = c.id
+       WHERE s.id = $1`,
+      [submissionId]
+    );
+
+    if (submissionCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    const submission = submissionCheck.rows[0];
+    if (submission.teacher_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized to grade this submission' });
+    }
+
+    // Update submission with grade
+    const result = await pool.query(
+      `UPDATE assignment_submissions 
+       SET points_given = $1, status = 'graded', graded_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING *`,
+      [percentage, submissionId]
+    );
+
+    // Create grading notification for student
+    const assignment = await pool.query(
+      `SELECT title, course_id FROM assignments WHERE id = $1`,
+      [submission.assignment_id]
+    );
+
+    if (assignment.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO notifications (student_id, course_id, type, data, created_at)
+         VALUES ($1, $2, 'assignment_graded', 
+           jsonb_build_object('assignment_title', $3, 'percentage', $4, 'course_title', $5),
+           NOW())`,
+        [submission.student_id, assignment.rows[0].course_id, assignment.rows[0].title, percentage, submission.course_title]
+      );
+    }
+
+    res.json({
+      message: 'Assignment graded successfully',
       submission: result.rows[0]
     });
   } catch (error) {

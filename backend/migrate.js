@@ -249,7 +249,36 @@ async function migrate() {
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_magic_links_user ON magic_links(user_id)
     `);
-    console.log('âœ" idx_magic_links_user index created');    console.log('\n✅ Migration completed successfully!');
+    console.log('✅ idx_magic_links_user index created');
+
+    // SECTION 4: Notifications table for course publish alerts
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+        type VARCHAR(50) NOT NULL DEFAULT 'course_published',
+        data JSONB,
+        is_read BOOLEAN NOT NULL DEFAULT false,
+        is_deleted BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        read_at TIMESTAMP
+      )
+    `);
+    console.log('✅ notifications table created');
+
+    // Create indexes for notifications table
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_notifications_student_created ON notifications(student_id, created_at DESC)
+    `);
+    console.log('✅ idx_notifications_student_created index created');
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_notifications_student_read ON notifications(student_id, is_read, is_deleted)
+    `);
+    console.log('✅ idx_notifications_student_read index created');
+
+    console.log('\nMigration completed successfully!');
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
     process.exit(1);

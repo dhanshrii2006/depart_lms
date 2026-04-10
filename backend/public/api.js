@@ -77,10 +77,11 @@ const coursesAPI = {
   // Publish course
   publish: async (courseId) => {
     try {
-      const response = await fetch(`${API_BASE}/api/courses/${courseId}/publish`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE}/api/courses/${courseId}`, {
+        method: 'PATCH',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_published: true })
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
@@ -94,10 +95,11 @@ const coursesAPI = {
 // ===== ASSIGNMENTS API =====
 const assignmentsAPI = {
   // Get all assignments for a course
-  list: async (courseId, filters = {}) => {
+  // Get all assignments for teacher (from all courses)
+  list: async (filters = {}) => {
     try {
       const params = new URLSearchParams(filters);
-      const response = await fetch(`${API_BASE}/api/courses/${courseId}/assignments${params ? '?' + params : ''}`, {
+      const response = await fetch(`${API_BASE}/api/assignments${params ? '?' + params : ''}`, {
         method: 'GET',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
@@ -127,13 +129,20 @@ const assignmentsAPI = {
   },
 
   // Create assignment
-  create: async (courseId, assignmentData) => {
+  // Create assignment for a specific course
+  create: async (courseId, title, description, total_points, due_date, file_url) => {
     try {
       const response = await fetch(`${API_BASE}/api/courses/${courseId}/assignments`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(assignmentData)
+        body: JSON.stringify({
+          title,
+          description,
+          total_points,
+          due_date,
+          file_url
+        })
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
@@ -176,13 +185,13 @@ const assignmentsAPI = {
   },
 
   // Grade submission
-  gradeSubmission: async (submissionId, gradeData) => {
+  gradeSubmission: async (submissionId, percentage) => {
     try {
-      const response = await fetch(`${API_BASE}/api/submissions/${submissionId}/grade`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE}/api/assignments/${submissionId}/grade`, {
+        method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(gradeData)
+        body: JSON.stringify({ percentage })
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
@@ -231,7 +240,7 @@ const studentAssignmentsAPI = {
   // Submit assignment
   submit: async (assignmentId, submissionData) => {
     try {
-      const response = await fetch(`${API_BASE}/api/student/assignments/${assignmentId}/submit`, {
+      const response = await fetch(`${API_BASE}/api/assignments/${assignmentId}/submit`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -294,6 +303,78 @@ const enrollmentsAPI = {
       return await response.json();
     } catch (error) {
       console.error('Error fetching my students:', error);
+      throw error;
+    }
+  },
+
+  // Join course by invite code
+  joinByKey: async (invite_code) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/courses/join-by-key`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invite_code: invite_code.toUpperCase() })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `HTTP ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error joining course by key:', error);
+      throw error;
+    }
+  }
+};
+
+// ===== NOTIFICATIONS API =====
+const notificationsAPI = {
+  // Get all notifications for current student
+  list: async (limit = 20, offset = 0) => {
+    try {
+      const params = new URLSearchParams({ limit, offset });
+      const response = await fetch(`${API_BASE}/api/notifications?${params}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      throw error;
+    }
+  },
+
+  // Mark notification as read
+  markAsRead: async (notificationId) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/notifications/${notificationId}/read`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  },
+
+  // Delete/dismiss notification
+  delete: async (notificationId) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/notifications/${notificationId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error deleting notification:', error);
       throw error;
     }
   }

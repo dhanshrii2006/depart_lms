@@ -26,6 +26,29 @@
         <p class="opacity-60">You have 3 assignments due this week. Let's maintain the momentum.</p>
       </div>
 
+      <!-- Join Course by Key Form -->
+      <div class="card" style="background: #1a202c; border: 1px solid #667eea; margin-bottom: 2rem; padding: 1.5rem;">
+        <h3 style="color: white; margin: 0 0 1rem 0; font-size: 1.1rem;">🔑 Join Course by Key</h3>
+        <div style="display: flex; gap: 0.75rem; align-items: flex-end;">
+          <div style="flex: 1;">
+            <label style="display: block; color: #a3aac4; font-size: 0.85rem; margin-bottom: 0.5rem;">Enter Course Access Key:</label>
+            <input 
+              type="text" 
+              id="courseKeyInput" 
+              placeholder="Enter the 6-character course key" 
+              style="width: 100%; padding: 0.75rem 1rem; background: #0f1419; border: 1px solid #667eea; border-radius: 0.5rem; color: white; font-family: monospace; font-size: 1rem; text-transform: uppercase;"
+            >
+          </div>
+          <button 
+            onclick="joinCourseByKey()" 
+            style="padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; white-space: nowrap; transition: all 0.3s;"
+          >
+            Join Course
+          </button>
+        </div>
+        <div id="joinStatus" style="margin-top: 0.75rem; font-size: 0.85rem; color: #a3aac4; display: none;"></div>
+      </div>
+
       <div class="grid grid-3 mb-4">
         <div class="card stat-card">
           <div class="stat-value">04</div>
@@ -103,6 +126,7 @@
 
   <script src="navbar.js"></script>
   <script src="auth.js"></script>
+  <script src="api.js"></script>
   <script>
     checkAuth('student');
 
@@ -129,6 +153,44 @@
     } else {
       // If already loaded, use setTimeout to ensure navbar is injected
       setTimeout(attachEventListeners, 100);
+    }
+
+    async function joinCourseByKey() {
+      const keyInput = document.getElementById('courseKeyInput');
+      const statusDiv = document.getElementById('joinStatus');
+      const key = keyInput.value.trim();
+
+      if (!key) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#f87171';
+        statusDiv.textContent = '❌ Please enter a course key';
+        return;
+      }
+
+      try {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#fbbf24';
+        statusDiv.textContent = '⏳ Joining course...';
+
+        const response = await enrollmentsAPI.joinByKey(key);
+
+        statusDiv.style.color = '#34d399';
+        statusDiv.textContent = `✅ Successfully joined "${response.course.title}"!`;
+        
+        // Clear input
+        keyInput.value = '';
+
+        // Reload courses after 1.5 seconds
+        setTimeout(() => {
+          loadCourses();
+        }, 1500);
+
+      } catch (error) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#f87171';
+        statusDiv.textContent = `❌ ${error.message}`;
+        console.error('Error joining course:', error);
+      }
     }
 
     // Update user info

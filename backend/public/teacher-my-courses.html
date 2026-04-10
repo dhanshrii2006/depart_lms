@@ -12,12 +12,13 @@
     <aside class="sidebar">
       <div class="sidebar-logo">📚 Acadify Teacher</div>
       <ul class="sidebar-menu">
-        <li><a href="teacher-dashboard.html"><i class="fas fa-chalkboard-teacher mr-2"></i> Dashboard</a></li>
+        <li><a href="teacher-dashboard.html"><i class="fas fa-home mr-2"></i> Dashboard</a></li>
         <li><a href="course-creation.html"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
-        <li><a href="teacher-my-courses.html" class="active"><i class="fas fa-folder-open mr-2"></i> My Courses</a></li>
-        <li><a href="assessment.html"><i class="fas fa-quiz mr-2"></i> Assessments</a></li>
+        <li><a href="teacher-my-courses.html" class="active"><i class="fas fa-book mr-2"></i> My Courses</a></li>
+        <li><a href="assignment-management.html"><i class="fas fa-tasks mr-2"></i> Assignments</a></li>
         <li><a href="teacher-calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
-        <li><a href="#" onclick="logout(); return false;"><i class="fas fa-power-off mr-2"></i> Exit</a></li>
+        <li><a href="teacher-settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
+        <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-power-off mr-2"></i> Exit</a></li>
       </ul>
     </aside>
 
@@ -215,6 +216,7 @@
   </style>
 
   <script src="auth.js"></script>
+  <script src="api.js"></script>
   <script>
     checkAuth('teacher');
 
@@ -226,26 +228,66 @@
 
     async function loadCourses() {
       try {
-        // Load teacher's courses from localStorage (or API in production)
-        const courses = JSON.parse(localStorage.getItem('teacherCourses')) || [];
-        allCourses = courses;
+      // Load teacher's courses from API
+      const response = await fetch(`${API_BASE}/api/courses`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-        updateStats();
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      let courses = Array.isArray(data.courses) ? data.courses : data;
+      
+      // Transform API courses to match expected format
+      courses = courses.map(course => ({
+        ...course,
+        status: course.is_published ? 'published' : 'draft',
+        modules: course.modules || [],
+        studentsEnrolled: course.studentsEnrolled || [],
+        studentsCompleted: course.studentsCompleted || []
+      }));
+      
+      // Also include localStorage courses (drafts)
+      const localCourses = JSON.parse(localStorage.getItem('teacherCourses')) || [];
+      
+      // Merge: API courses take priority, then add any local drafts
+      const courseIds = new Set(courses.map(c => c.id));
+      const allCourses = [
+        ...courses,
+        ...localCourses.filter(c => !courseIds.has(c.id))
+      ];
+
+      allCourses.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      
+      // Update global variable for other functions
+      window.allCourses = allCourses;
+      
+      updateStats(allCourses);
+      renderCourses(allCourses);
+    } catch (error) {
+      console.error('Error loading courses:', error);
+      // Fallback to localStorage
+      try {
+        const courses = JSON.parse(localStorage.getItem('teacherCourses')) || [];
+        window.allCourses = courses;
+        updateStats(courses);
         renderCourses(courses);
-      } catch (error) {
-        console.error('Error loading courses:', error);
+      } catch (localError) {
         document.getElementById('coursesList').innerHTML = '<p class="text-muted">Error loading courses</p>';
       }
-    }
 
-    function updateStats() {
-      const totalCourses = allCourses.length;
-      const publishedCourses = allCourses.filter(c => c.status === 'published').length;
+    function updateStats(courses = []) {
+      const totalCourses = courses.length;
+      const publishedCourses = courses.filter(c => c.status === 'published').length;
       
       let totalStudents = 0;
       let totalCompleted = 0;
       
-      allCourses.forEach(course => {
+      courses.forEach(course => {
         const enrolled = (course.studentsEnrolled || []).length;
         const completed = (course.studentsCompleted || []).length;
         totalStudents += enrolled;

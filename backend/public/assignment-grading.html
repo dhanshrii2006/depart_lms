@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grade Assignments - Acadify</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .grading-container {
+      display: flex;
+      gap: 20px;
+      min-height: 100vh;
+    }
+
+    .assignments-list {
+      flex: 0 0 30%;
+      background: #f9f9f9;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+
+    .grading-panel {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+
+    .assignment-item {
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .assignment-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .assignment-item.active {
+      background-color: #e8f4f8;
+      border-left: 4px solid #0066cc;
+    }
+
+    .assignment-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #333;
+    }
+
+    .assignment-meta {
+      font-size: 13px;
+      color: #666;
+      margin: 3px 0;
+    }
+
+    .assignment-stat {
+      font-size: 12px;
+      padding: 3px 8px;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 5px;
+      margin-right: 5px;
+    }
+
+    .submissions-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .submissions-table th {
+      background-color: #0066cc;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .submissions-table td {
+      padding: 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .submissions-table tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .status-submitted {
+      background-color: #cfe2ff;
+      color: #084298;
+    }
+
+    .status-graded {
+      background-color: #d1e7dd;
+      color: #0f5132;
+    }
+
+    .grade-input {
+      width: 80px;
+      padding: 6px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .submission-link {
+      color: #0066cc;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .submission-link:hover {
+      text-decoration: underline;
+    }
+
+    .grade-btn {
+      background-color: #28a745;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background-color 0.3s;
+    }
+
+    .grade-btn:hover:not(:disabled) {
+      background-color: #218838;
+    }
+
+    .grade-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .no-selection {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .no-selection i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      color: #ddd;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      border: 1px solid #f5c6cb;
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      border: 1px solid #c3e6cb;
+    }
+
+    .submitted-badge {
+      cursor: pointer;
+    }
+
+    .submitted-badge a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .submitted-badge a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1><i class="fas fa-graduation-cap"></i> Acadify</h1>
+      </div>
+      <nav class="sidebar-nav">
+        <ul class="sidebar-menu">
+          <li><a href="/teacher-dashboard.html"><i class="fas fa-home mr-2"></i> Dashboard</a></li>
+          <li><a href="/course-creation.html"><i class="fas fa-plus-circle mr-2"></i> Create Course</a></li>
+          <li><a href="/teacher-my-courses.html"><i class="fas fa-book mr-2"></i> My Courses</a></li>
+          <li><a href="/assignment-management.html"><i class="fas fa-tasks mr-2"></i> Assignments</a></li>
+          <li><a href="/assignment-grading.html" class="active"><i class="fas fa-check-circle mr-2"></i> Grade Assignments</a></li>
+          <li><a href="/teacher-calendar.html"><i class="fas fa-calendar mr-2"></i> Calendar</a></li>
+          <li><a href="/teacher-settings.html"><i class="fas fa-cog mr-2"></i> Settings</a></li>
+          <li class="mt-4"><a href="#" onclick="logout(); return false;"><i class="fas fa-power-off mr-2"></i> Exit</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1><i class="fas fa-check-circle mr-2"></i> Grade Assignments</h1>
+        <div class="user-info">
+          <span id="teacherName">Teacher</span>
+          <div class="user-avatar" id="teacherAvatar">T</div>
+        </div>
+      </header>
+
+      <div class="grading-container">
+        <div class="assignments-list">
+          <div style="padding: 15px; border-bottom: 1px solid #ddd;">
+            <h3 style="margin: 0; font-size: 14px; color: #666;">Assignments to Grade</h3>
+          </div>
+          <div id="assignmentsList" style="padding: 0;">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading assignments...</div>
+          </div>
+        </div>
+
+        <div class="grading-panel">
+          <div id="gradingArea">
+            <div class="no-selection">
+              <div><i class="fas fa-tasks"></i></div>
+              <p>Select an assignment to grade</p>
+              <p style="font-size: 12px;">Click an assignment on the left to view student submissions</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+  <script src="navbar.js"></script>
+
+  <script>
+    let currentAssignment = null;
+
+    async function loadAssignments() {
+      try {
+        const assignments = await assignmentsAPI.list();
+        displayAssignmentsList(assignments);
+      } catch (error) {
+        console.error('Error loading assignments:', error);
+        document.getElementById('assignmentsList').innerHTML = `
+          <div class="error">Failed to load assignments</div>
+        `;
+      }
+    }
+
+    function displayAssignmentsList(assignments) {
+      const container = document.getElementById('assignmentsList');
+      
+      if (!assignments || assignments.length === 0) {
+        container.innerHTML = '<div style="padding: 20px; color: #999;">No assignments found</div>';
+        return;
+      }
+
+      container.innerHTML = assignments.map(assignment => `
+        <div class="assignment-item" onclick="selectAssignment('${assignment.id}', '${assignment.title.replace(/'/g, "\\'")}')">
+          <div class="assignment-title">${assignment.title}</div>
+          <div class="assignment-meta"><strong>${assignment.course_title}</strong></div>
+          <div class="assignment-meta"><i class="fas fa-calendar"></i> ${new Date(assignment.due_date).toLocaleDateString()}</div>
+          <div>
+            <span class="assignment-stat"><i class="fas fa-file-upload"></i> ${assignment.submitted_count || 0}/${assignment.total_students || 0} submitted</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function selectAssignment(assignmentId, assignmentTitle) {
+      currentAssignment = { id: assignmentId, title: assignmentTitle };
+      
+      // Update UI
+      document.querySelectorAll('.assignment-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.currentTarget.classList.add('active');
+
+      // Load submissions
+      loadSubmissions(assignmentId, assignmentTitle);
+    }
+
+    async function loadSubmissions(assignmentId, assignmentTitle) {
+      try {
+        const gradingArea = document.getElementById('gradingArea');
+        gradingArea.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading submissions...</div>';
+
+        const submissions = await assignmentsAPI.getSubmissions(assignmentId);
+        
+        if (!submissions || !Array.isArray(submissions)) {
+          gradingArea.innerHTML = '<div class="error">Failed to load submissions</div>';
+          return;
+        }
+
+        displaySubmissions(submissions, assignmentId, assignmentTitle);
+      } catch (error) {
+        console.error('Error loading submissions:', error);
+        document.getElementById('gradingArea').innerHTML = `
+          <div class="error">Failed to load submissions. ${error.message}</div>
+        `;
+      }
+    }
+
+    function displaySubmissions(submissions, assignmentId, assignmentTitle) {
+      const gradingArea = document.getElementById('gradingArea');
+      
+      const html = `
+        <div>
+          <h2>${assignmentTitle}</h2>
+          
+          <table class="submissions-table">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Status</th>
+                <th>Submission</th>
+                <th>Grade (%)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${submissions.map(sub => `
+                <tr>
+                  <td>${sub.student_name || 'Unknown Student'}</td>
+                  <td>
+                    <span class="status-badge status-${sub.status || 'pending'}">
+                      ${sub.status === 'submitted' ? '📤 Submitted' : 
+                        sub.status === 'graded' ? '✓ Graded' : '⏳ Pending'}
+                    </span>
+                  </td>
+                  <td>
+                    ${sub.submission_link ? `
+                      <a href="${sub.submission_link}" target="_blank" class="submission-link">
+                        <i class="fas fa-external-link-alt"></i> View
+                      </a>
+                    ` : '—'}
+                  </td>
+                  <td>
+                    <input type="number" id="grade_${sub.id}" class="grade-input" 
+                           min="0" max="100" value="${sub.points_given || ''}"
+                           ${sub.status === 'graded' ? '' : 'placeholder="0-100"'}>
+                  </td>
+                  <td>
+                    <button class="grade-btn" onclick="saveGrade('${sub.id}')">
+                      ${sub.status === 'graded' ? '✓ Re-grade' : 'Grade'}
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+      
+      gradingArea.innerHTML = html;
+    }
+
+    async function saveGrade(submissionId) {
+      const gradeInput = document.getElementById(`grade_${submissionId}`);
+      const percentage = parseInt(gradeInput.value);
+
+      if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+        alert('Please enter a valid percentage (0-100)');
+        return;
+      }
+
+      try {
+        const button = event.currentTarget;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const response = await assignmentsAPI.gradeSubmission(submissionId, percentage);
+        
+        // Show success message
+        showNotification(`✓ Graded successfully!`, 'success');
+        
+        // Reload submissions after delay
+        setTimeout(() => {
+          if (currentAssignment) {
+            loadSubmissions(currentAssignment.id, currentAssignment.title);
+          }
+        }, 1000);
+      } catch (error) {
+        console.error('Error saving grade:', error);
+        showNotification(`Failed to save grade: ${error.message}`, 'error');
+        button.disabled = false;
+        button.innerHTML = 'Grade';
+      }
+    }
+
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.className = type;
+      notification.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 1000;';
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
+    // Load assignments on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAssignments();
+      
+      // Refresh every 30 seconds
+      setInterval(loadAssignments, 30000);
+    });
+  </script>
+</body>
+</html>
