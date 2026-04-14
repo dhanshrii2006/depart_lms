@@ -1,0 +1,10 @@
+/* Import custom fonts */
+@import './styles/fonts.css';
+
+/* Import global styles and utilities */
+@import './styles/globals.css';
+
+/* Tailwind CSS layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

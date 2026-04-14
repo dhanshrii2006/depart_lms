@@ -1,0 +1,108 @@
+/**
+ * Mock lecture data for development
+ */
+
+export const mockLectures = [
+  {
+    id: 'lec-1',
+    courseId: 'course-1',
+    title: 'Introduction to React Hooks',
+    description: 'Learn useState, useEffect, and custom hooks from scratch. This is a comprehensive guide to modern React patterns.',
+    videoUrl: 'https://www.youtube.com/watch?v=dpw9EHDh2bM',
+    embedUrl: 'https://www.youtube.com/embed/dpw9EHDh2bM?rel=0&modestbranding=1&color=white&iv_load_policy=3&showinfo=0',
+    thumbnailUrl: 'https://img.youtube.com/vi/dpw9EHDh2bM/maxresdefault.jpg',
+    platform: 'youtube',
+    videoId: 'dpw9EHDh2bM',
+    topic: 'React Fundamentals',
+    durationLabel: '28:14',
+    status: 'published',
+    createdAt: '2026-04-01T10:00:00Z',
+    updatedAt: '2026-04-01T10:00:00Z',
+    watched: false,
+  },
+  {
+    id: 'lec-2',
+    courseId: 'course-1',
+    title: 'Advanced CSS Grid & Flexbox',
+    description: 'Master CSS Grid and Flexbox layouts with real-world examples and best practices.',
+    videoUrl: 'https://www.youtube.com/watch?v=sKFW3wflHWE',
+    embedUrl: 'https://www.youtube.com/embed/sKFW3wflHWE?rel=0&modestbranding=1&color=white&iv_load_policy=3&showinfo=0',
+    thumbnailUrl: 'https://img.youtube.com/vi/sKFW3wflHWE/maxresdefault.jpg',
+    platform: 'youtube',
+    videoId: 'sKFW3wflHWE',
+    topic: 'Styling',
+    durationLabel: '35:00',
+    status: 'published',
+    createdAt: '2026-04-03T10:00:00Z',
+    updatedAt: '2026-04-03T10:00:00Z',
+    watched: true,
+  },
+  {
+    id: 'lec-3',
+    courseId: 'course-1',
+    title: 'JavaScript DOM API Fundamentals',
+    description: 'Understanding DOM manipulation, events, and best practices.',
+    videoUrl: 'https://www.youtube.com/watch?v=NY-x3q7EP-0',
+    embedUrl: 'https://www.youtube.com/embed/NY-x3q7EP-0?rel=0&modestbranding=1&color=white&iv_load_policy=3&showinfo=0',
+    thumbnailUrl: 'https://img.youtube.com/vi/NY-x3q7EP-0/maxresdefault.jpg',
+    platform: 'youtube',
+    videoId: 'NY-x3q7EP-0',
+    topic: 'JavaScript Basics',
+    durationLabel: '42:15',
+    status: 'published',
+    createdAt: '2026-04-05T10:00:00Z',
+    updatedAt: '2026-04-05T10:00:00Z',
+    watched: false,
+  },
+  {
+    id: 'lec-4',
+    courseId: 'course-1',
+    title: 'State Management with Zustand',
+    description: 'Learn high-performance state management patterns using Zustand.',
+    videoUrl: 'https://www.youtube.com/watch?v=EEo4OjRN8U0',
+    embedUrl: 'https://www.youtube.com/embed/EEo4OjRN8U0?rel=0&modestbranding=1&color=white&iv_load_policy=3&showinfo=0',
+    thumbnailUrl: 'https://img.youtube.com/vi/EEo4OjRN8U0/maxresdefault.jpg',
+    platform: 'youtube',
+    videoId: 'EEo4OjRN8U0',
+    topic: 'React Fundamentals',
+    durationLabel: '31:45',
+    status: 'draft',
+    createdAt: '2026-04-07T10:00:00Z',
+    updatedAt: '2026-04-07T10:00:00Z',
+    watched: false,
+  },
+];
+
+/**
+ * Mock lecture statistics (for teachers)
+ */
+export const mockLectureStats = [
+  {
+    lectureId: 'lec-1',
+    title: 'Introduction to React Hooks',
+    watchedCount: 7,
+    totalStudents: 10,
+    watchPercentage: 70,
+  },
+  {
+    lectureId: 'lec-2',
+    title: 'Advanced CSS Grid & Flexbox',
+    watchedCount: 9,
+    totalStudents: 10,
+    watchPercentage: 90,
+  },
+  {
+    lectureId: 'lec-3',
+    title: 'JavaScript DOM API Fundamentals',
+    watchedCount: 3,
+    totalStudents: 10,
+    watchPercentage: 30,
+  },
+  {
+    lectureId: 'lec-4',
+    title: 'State Management with Zustand',
+    watchedCount: 0,
+    totalStudents: 10,
+    watchPercentage: 0,
+  },
+];

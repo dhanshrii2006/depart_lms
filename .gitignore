@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Builds
+/dist/
+**/dist/
+**/dist-ssr/
+/build/
+**/build/
+
+# Env / secrets
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Runtime uploads
+uploads/
+**/uploads/
+
+# Logs
+*.log
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
