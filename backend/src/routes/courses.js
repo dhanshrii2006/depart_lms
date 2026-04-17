@@ -8,7 +8,6 @@ const router = Router();
 
 const createCourseSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  section: z.string().optional().default(''),
   subject: z.string().optional().default(''),
   description: z.string().optional().default(''),
   category: z.string().optional().default(''),
@@ -17,7 +16,8 @@ const createCourseSchema = z.object({
   maxStudents: z.coerce.number().int().min(1).optional(),
   outcomes: z.array(z.string().min(1)).max(8).optional().default([]),
   status: z.enum(['draft', 'published']).optional().default('published'),
-  coverColor: z.string().regex(/^#[0-9A-F]{6}$/i).optional().default('#4F46E5')
+  coverColor: z.string().regex(/^#[0-9A-F]{6}$/i).optional().default('#4F46E5'),
+  academicYear: z.string().regex(/^\d{4}-\d{4}$/, 'Format: YYYY-YYYY (e.g., 2024-2025)').optional().default('2024-2025')
 });
 
 const createModuleSchema = z.object({
@@ -28,6 +28,10 @@ const createModuleSchema = z.object({
 
 const enrollSchema = z.object({
   code: z.string().min(1, 'Invite code is required')
+});
+
+const filterSchema = z.object({
+  academicYear: z.string().optional()
 });
 
 // Create course (teachers only)

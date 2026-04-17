@@ -5,7 +5,7 @@ export const createCourse = async (req, res) => {
   try {
     const {
       title,
-      section,
+      academicYear,
       subject,
       description,
       coverColor,
@@ -23,7 +23,7 @@ export const createCourse = async (req, res) => {
       `INSERT INTO courses (
          teacher_id,
          title,
-         section,
+         academic_year,
          subject,
          description,
          category,
@@ -39,7 +39,7 @@ export const createCourse = async (req, res) => {
       [
         req.user.id,
         title,
-        section || '',
+        academicYear || '2024-2025',
         subjectToStore,
         description,
         category || '',
@@ -133,33 +133,52 @@ export const getCourse = async (req, res) => {
 
 export const listCourses = async (req, res) => {
   try {
+    const { academicYear } = req.query;
     let result;
 
     if (req.user.role === 'teacher') {
       // Teachers see their own courses
+      const params = [req.user.id];
+      let whereClause = 'teacher_id = $1';
+      if (academicYear) {
+        whereClause += ' AND academic_year = $2';
+        params.push(academicYear);
+      }
       result = await query(
-        `SELECT id, title, section, subject, description, cover_color, created_at
-         FROM courses WHERE teacher_id = $1
+        `SELECT id, title, academic_year, subject, description, cover_color, created_at
+         FROM courses WHERE ${whereClause}
          ORDER BY created_at DESC`,
-        [req.user.id]
+        params
       );
     } else if (req.user.role === 'student') {
       // Students see enrolled courses
+      const params = [req.user.id];
+      let whereClause = 'e.user_id = $1';
+      if (academicYear) {
+        whereClause += ' AND c.academic_year = $2';
+        params.push(academicYear);
+      }
       result = await query(
-        `SELECT c.id, c.title, c.section, c.subject, c.description, c.cover_color, c.created_at
+        `SELECT c.id, c.title, c.academic_year, c.subject, c.description, c.cover_color, c.created_at
          FROM courses c
          JOIN enrollments e ON c.id = e.course_id
-         WHERE e.user_id = $1
+         WHERE ${whereClause}
          ORDER BY c.created_at DESC`,
-        [req.user.id]
+        params
       );
     } else if (req.user.role === 'admin') {
       // Admins can see all courses
+      const params = [];
+      let whereClause = '';
+      if (academicYear) {
+        whereClause = 'WHERE academic_year = $1';
+        params.push(academicYear);
+      }
       result = await query(
-        `SELECT id, title, section, subject, description, cover_color, created_at
-         FROM courses
+        `SELECT id, title, academic_year, subject, description, cover_color, created_at
+         FROM courses ${whereClause}
          ORDER BY created_at DESC`,
-        []
+        params
       );
     } else {
       return res.status(403).json({ error: 'Insufficient permissions' });
@@ -242,7 +261,7 @@ export const updateCourse = async (req, res) => {
     const { courseId } = req.params;
     const {
       title,
-      section,
+      academicYear,
       subject,
       description,
       coverColor,
@@ -263,7 +282,7 @@ export const updateCourse = async (req, res) => {
     const result = await query(
       `UPDATE courses 
        SET title = $1,
-           section = $2,
+           academic_year = $2,
            subject = $3,
            description = $4,
            category = $5,
@@ -278,7 +297,7 @@ export const updateCourse = async (req, res) => {
        RETURNING *`,
       [
         title,
-        section || '',
+        academicYear || '2024-2025',
         subject || category || '',
         description,
         category || '',

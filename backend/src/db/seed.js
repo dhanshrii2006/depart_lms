@@ -23,7 +23,7 @@ export async function seed() {
       const result = await query(
         `INSERT INTO users (email, password_hash, first_name, last_name, role) 
          VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-        [`teacher${i}@acadify.com`, teacherPassword, `Teacher`, `User${i}`, 'teacher']
+        [`teacher${i}@stvincentngp.edu.in`, teacherPassword, `Teacher`, `User${i}`, 'teacher']
       );
       teachers.push(result.rows[0].id);
     }
@@ -80,9 +80,9 @@ export async function seed() {
 
     for (const course of courseData) {
       const result = await query(
-        `INSERT INTO courses (teacher_id, title, section, subject, cover_color) 
+        `INSERT INTO courses (teacher_id, title, academic_year, subject, cover_color) 
          VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-        [course.teacher_id, course.title, 'A', course.subject, course.color]
+        [course.teacher_id, course.title, '2024-2025', course.subject, course.color]
       );
       courses.push(result.rows[0].id);
     }
