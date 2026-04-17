@@ -44,6 +44,22 @@ function parseVideoUrl(url) {
   return null;
 }
 
+export const getVideos = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+
+    const result = await query(
+      `SELECT * FROM lesson_videos WHERE lesson_id = $1 ORDER BY created_at DESC`,
+      [lessonId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get videos error:', error);
+    res.status(500).json({ error: 'Failed to fetch videos' });
+  }
+};
+
 export const attachVideo = async (req, res) => {
   try {
     const { lessonId } = req.params;

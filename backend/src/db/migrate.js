@@ -3,6 +3,8 @@ import { query } from './pool.js';
 const schema = `
 -- Drop existing tables if they exist (for development)
 DROP TABLE IF EXISTS comments CASCADE;
+DROP TABLE IF EXISTS discussion_replies CASCADE;
+DROP TABLE IF EXISTS discussions CASCADE;
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS submissions CASCADE;
 DROP TABLE IF EXISTS quiz_attempts CASCADE;
@@ -139,6 +141,26 @@ CREATE TABLE comments (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Discussion forum posts
+CREATE TABLE discussions (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Replies to discussions
+CREATE TABLE discussion_replies (
+  id SERIAL PRIMARY KEY,
+  discussion_id INTEGER NOT NULL REFERENCES discussions(id) ON DELETE CASCADE,
+  author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Assignments
 CREATE TABLE assignments (
   id SERIAL PRIMARY KEY,
@@ -246,6 +268,9 @@ CREATE INDEX idx_lesson_videos_lesson_id ON lesson_videos(lesson_id);
 CREATE INDEX idx_enrollments_user_id ON enrollments(user_id);
 CREATE INDEX idx_enrollments_course_id ON enrollments(course_id);
 CREATE INDEX idx_announcements_course_id ON announcements(course_id);
+CREATE INDEX idx_discussions_author_id ON discussions(author_id);
+CREATE INDEX idx_discussion_replies_discussion_id ON discussion_replies(discussion_id);
+CREATE INDEX idx_discussion_replies_author_id ON discussion_replies(author_id);
 CREATE INDEX idx_assignments_course_id ON assignments(course_id);
 CREATE INDEX idx_submissions_assignment_id ON submissions(assignment_id);
 CREATE INDEX idx_submissions_user_id ON submissions(user_id);

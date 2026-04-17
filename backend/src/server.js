@@ -17,6 +17,7 @@ import notificationsRoutes from './routes/notifications.js';
 import adminRoutes from './routes/admin.js';
 import modulesRoutes from './routes/modules.js';
 import lessonsRoutes from './routes/lessons.js';
+import discussionsRoutes from './routes/discussions.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -31,7 +32,7 @@ app.use(cors({
 
 // Security headers with proper CSP
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self' http://localhost:* ws://localhost:*; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:;");
+  res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self' http://localhost:* ws://localhost:*; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; media-src 'self' data:;");
   next();
 });
 
@@ -41,6 +42,11 @@ app.use(cookieParser());
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Health check / root route
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'LMS Backend API is running', timestamp: new Date().toISOString() });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -52,16 +58,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/modules', modulesRoutes);
 app.use('/api/lessons', lessonsRoutes);
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-// Chrome devtools probe endpoint (suppress 404)
-app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
-  res.json({});
-});
+  app.use('/api/discussions', discussionsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

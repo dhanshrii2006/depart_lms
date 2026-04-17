@@ -45,7 +45,16 @@ router.post(
 // Get all courses for user
 router.get('/', authenticateToken, coursesController.listCourses);
 
-// Get specific course
+// Enroll by code (must come before /:courseId to avoid matching)
+router.post('/enroll/code', authenticateToken, validate(enrollSchema), coursesController.enrollByCourt);
+
+// Get invite code (teacher only) - specific routes before general ones
+router.get('/:courseId/invite-code', authenticateToken, requireRole('teacher'), coursesController.getInviteCode);
+
+// Get enrollments for a course (teacher only) - specific routes before general ones
+router.get('/:courseId/enrollments', authenticateToken, requireRole('teacher'), coursesController.getEnrollments);
+
+// Get specific course (must come after more specific routes)
 router.get('/:courseId', authenticateToken, coursesController.getCourse);
 
 // Update course (teacher only)
@@ -53,14 +62,5 @@ router.put('/:courseId', authenticateToken, requireRole('teacher'), validate(cre
 
 // Delete course (teacher only)
 router.delete('/:courseId', authenticateToken, requireRole('teacher'), coursesController.deleteCourse);
-
-// Enroll by code
-router.post('/enroll/code', authenticateToken, validate(enrollSchema), coursesController.enrollByCourt);
-
-// Get enrollments for a course (teacher only)
-router.get('/:courseId/enrollments', authenticateToken, requireRole('teacher'), coursesController.getEnrollments);
-
-// Get invite code (teacher only)
-router.get('/:courseId/invite-code', authenticateToken, requireRole('teacher'), coursesController.getInviteCode);
 
 export default router;

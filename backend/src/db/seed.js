@@ -7,10 +7,6 @@ export async function seed() {
   try {
     console.log('Seeding database...');
 
-    // Clear existing data
-    await query('DELETE FROM users');
-    await query('DELETE FROM valid_roll_numbers');
-
     // Create admin
     const adminPassword = hashPassword('admin123');
     const adminResult = await query(
@@ -54,7 +50,7 @@ export async function seed() {
         `INSERT INTO users (email, password_hash, first_name, last_name, role, roll_number) 
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
         [
-          `student${i + 1}@acadify.com`,
+          `student${i + 1}@stvincentngp.edu.in`,
           studentPassword,
           `Student`,
           `User${i + 1}`,
@@ -70,7 +66,7 @@ export async function seed() {
         [rollNumbers[i]]
       );
     }
-    console.log('✓ Students created');
+    console.log('✓ Students created with @stvincentngp.edu.in domain');
 
     // Create courses
     const courses = [];
@@ -199,7 +195,68 @@ export async function seed() {
     }
     console.log('✓ Materials created');
 
-    console.log('\n✅ Database seeding completed successfully!');
+    // Create discussions (forum posts)
+    const discussions = [];
+    const discussionData = [
+      {
+        title: 'How to approach problem solving in algorithms?',
+        description: 'I\'m struggling with complex algorithmic problems. Any tips on how to break them down systematically?',
+        author_id: students[0]
+      },
+      {
+        title: 'Best resources for learning React Hooks',
+        description: 'What are the best tutorials or resources you\'ve found for mastering React Hooks?',
+        author_id: students[1]
+      },
+      {
+        title: 'Understanding database normalization',
+        description: 'Can someone explain the difference between 1NF, 2NF, and 3NF in simple terms?',
+        author_id: students[2]
+      }
+    ];
+
+    for (const discussion of discussionData) {
+      const result = await query(
+        `INSERT INTO discussions (title, description, author_id) 
+         VALUES ($1, $2, $3) RETURNING id`,
+        [discussion.title, discussion.description, discussion.author_id]
+      );
+      discussions.push(result.rows[0].id);
+    }
+    console.log('✓ Discussions created');
+
+    // Create replies to discussions
+    const replies = [
+      {
+        discussion_id: discussions[0],
+        author_id: teachers[0],
+        content: 'Start with understanding the problem first, then break it down into smaller subproblems. Practice with simple examples before jumping to complex ones.'
+      },
+      {
+        discussion_id: discussions[0],
+        author_id: students[3],
+        content: 'I found LeetCode really helpful for practicing. Start with Easy problems and gradually move to Medium.'
+      },
+      {
+        discussion_id: discussions[1],
+        author_id: students[4],
+        content: 'The official React documentation is really good! Also check out egghead.io courses.'
+      },
+      {
+        discussion_id: discussions[2],
+        author_id: teachers[1],
+        content: '1NF eliminates duplicate columns, 2NF removes partial dependencies, and 3NF removes transitive dependencies. Here\'s a good reference: https://example.com'
+      }
+    ];
+
+    for (const reply of replies) {
+      await query(
+        `INSERT INTO discussion_replies (discussion_id, author_id, content) 
+         VALUES ($1, $2, $3)`,
+        [reply.discussion_id, reply.author_id, reply.content]
+      );
+    }
+    console.log('✓ Discussion replies created');
   } catch (error) {
     console.error('Seeding error:', error);
     process.exit(1);

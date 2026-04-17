@@ -18,6 +18,13 @@ const attachVideoSchema = z
     path: ['original_url'],
   });
 
+// Get videos for a lesson
+router.get(
+  '/:lessonId/videos',
+  authenticateToken,
+  lessonsController.getVideos
+);
+
 router.post(
   '/:lessonId/videos',
   authenticateToken,
